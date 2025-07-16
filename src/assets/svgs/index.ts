@@ -1,0 +1,14 @@
+export { default as Logo } from "./Logo.svg";
+export { default as DashboardIcon } from "./DashboardIcon.svg";
+export { default as HealthPatient } from "./HealthPatient.svg";
+export { default as Healthy } from "./Healthy.svg";
+export { default as Timer } from "./Timer.svg";
+export { default as LoginSplash } from "./LoginSplash.svg";
+export { default as SignupSplash } from "./SingupSplash.svg";
+export { default as Depression } from "./Depression.svg";
+export { default as BrainStrings } from "./BrainStrings.svg";
+export { default as BrainHeart } from "./BrainHeart.svg";
+export { default as BrainStrong } from "./BrainStrong.svg";
+export { default as BrainVideo } from "./BrainVideo.svg";
+export { default as BrainScared } from "./BrainScared.svg";
+export { default as WarningIcon } from "./WarningIcon.svg";
