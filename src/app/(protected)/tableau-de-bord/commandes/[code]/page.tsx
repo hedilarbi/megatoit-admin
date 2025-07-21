@@ -9,7 +9,7 @@ interface PageParams {
   };
 }
 
-const page = ({ params }: PageParams) => {
+const Page: React.FC<PageParams> = ({ params }: PageParams) => {
   const { code }: { code: string } = params;
   return (
     <div className="h-screen p-6 bg-gray-100 relative">
@@ -29,4 +29,4 @@ const page = ({ params }: PageParams) => {
   );
 };
 
-export default page;
+export default Page;
