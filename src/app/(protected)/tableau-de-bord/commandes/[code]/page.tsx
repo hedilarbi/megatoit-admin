@@ -3,14 +3,8 @@ import Link from "next/link";
 import React from "react";
 import { FaArrowLeftLong } from "react-icons/fa6";
 
-interface PageParams {
-  params: {
-    code: string;
-  };
-}
-
-const Page: React.FC<PageParams> = ({ params }: PageParams) => {
-  const { code }: { code: string } = params;
+const page = async ({ params }) => {
+  const { code } = await params;
   return (
     <div className="h-screen p-6 bg-gray-100 relative">
       <div className="max-w-7xl mx-auto">
@@ -29,4 +23,4 @@ const Page: React.FC<PageParams> = ({ params }: PageParams) => {
   );
 };
 
-export default Page;
+export default page;
