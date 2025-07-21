@@ -4,7 +4,7 @@ import React from "react";
 import { FaArrowLeftLong } from "react-icons/fa6";
 
 const page = ({ params }) => {
-  const { code } = params;
+  const { code }: { code: string } = params;
   return (
     <div className="h-screen p-6 bg-gray-100 relative">
       <div className="max-w-7xl mx-auto">
