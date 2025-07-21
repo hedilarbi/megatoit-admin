@@ -55,6 +55,7 @@ const ComptesContent = () => {
         setShowDeleteModal(false);
       }
     } catch (error) {
+      console.error("Error deleting account:", error);
       toast.error(
         "Une erreur s'est produite lors de la suppression du compte."
       );
