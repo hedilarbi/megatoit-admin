@@ -14,10 +14,7 @@ const UtilisateursContent = () => {
   const [usersList, setUsersList] = useState<Match[]>([]); // Unused state, can be removed if not needed
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const [submitting, setSubmitting] = useState(false);
-  const [refresh, setRefresh] = useState(0);
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -47,9 +44,8 @@ const UtilisateursContent = () => {
   };
   useEffect(() => {
     fetchData(); // Fetch data when the component mounts
-  }, [refresh]);
-  const formatDate = (timestamp: any) => {
-    console.log("Timestamp:", timestamp);
+  }, []);
+  const formatDate = (timestamp) => {
     const milliseconds =
       timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
 
@@ -113,11 +109,6 @@ const UtilisateursContent = () => {
           onChange={handleSearch}
         />
       </div>
-      {submitting && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30  z-20">
-          <Spinner />
-        </div>
-      )}
 
       <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
         <table className="w-full text-left border-collapse">
@@ -153,7 +144,7 @@ const UtilisateursContent = () => {
                     <button
                       className="text-red-600 hover:text-red-800 cursor-pointer"
                       onClick={() => {
-                        setShowDeleteModal(true);
+                        console.log("Block user:", user.uid);
                       }}
                     >
                       <MdBlock size={22} />

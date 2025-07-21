@@ -48,7 +48,7 @@ const CreateTeamPage = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nom de l'équipe :
+            Nom de l&apos;équipe :
           </label>
           <input
             type="text"
@@ -60,7 +60,7 @@ const CreateTeamPage = () => {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Image de l'équipe :
+            Image de l&apos;équipe :
           </label>
           <input
             type="file"

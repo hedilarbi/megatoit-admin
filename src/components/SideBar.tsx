@@ -61,6 +61,13 @@ const navItems: NavItem[] = [
     ariaLabel: "Navigate to invitations",
     matchPattern: /^\/utlisateurs(\/.*)?$/, // Matches /patients and /patients/[id]
   },
+  {
+    label: "Employés",
+    href: "/comptes",
+    icon: <FaUsers />,
+    ariaLabel: "Navigate to invitations",
+    matchPattern: /^\/comptes(\/.*)?$/, // Matches /patients and /patients/[id]
+  },
 ];
 
 // SideBar Component

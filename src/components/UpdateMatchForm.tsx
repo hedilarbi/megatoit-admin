@@ -4,7 +4,7 @@ import DateTimePicker from "react-datetime-picker";
 import "react-datetime-picker/dist/DateTimePicker.css";
 import "react-calendar/dist/Calendar.css";
 import "react-clock/dist/Clock.css";
-import { addMatch, getMatchByUid, updateMatch } from "@/services/match.service";
+import { getMatchByUid, updateMatch } from "@/services/match.service";
 import Spinner from "./spinner/Spinner";
 import toast from "react-hot-toast";
 import { useParams } from "next/navigation";
@@ -86,7 +86,7 @@ const UpdateMatchForm = () => {
       setSubmitting(false);
     }
   };
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp) => {
     const milliseconds =
       timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
 

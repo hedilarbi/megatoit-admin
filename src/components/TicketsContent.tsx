@@ -43,7 +43,7 @@ const TicketsContent = () => {
   useEffect(() => {
     fetchData(); // Fetch data when the component mounts
   }, []);
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp) => {
     const milliseconds =
       timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
 

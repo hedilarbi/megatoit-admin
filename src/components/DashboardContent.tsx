@@ -1,34 +1,30 @@
 "use client";
-import { deleteMatch } from "@/services/match.service";
+
 import React, { useState, useEffect } from "react";
 import Spinner from "./spinner/Spinner";
-import { Match } from "@/types/match";
+
 import { WarningIcon } from "@/assets/svgs";
 
 import Image from "next/image";
 import Link from "next/link";
-import DeleteWarningModal from "./DeleteWarningModal";
-import toast from "react-hot-toast";
-import { getAllUsers } from "@/services/user.service";
+
 import { IoEyeSharp } from "react-icons/io5";
-import { MdBlock } from "react-icons/md";
+
 import { getOrdersWithDetails } from "@/services/order.service";
 const DashboardContent = () => {
   const [orders, setOrders] = useState([]);
   const [ordersList, setOrdersList] = useState([]); // Unused state, can be removed if not needed
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const [type, setType] = useState("tous");
-  const [submitting, setSubmitting] = useState(false);
-  const [refresh, setRefresh] = useState(0);
+
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await getOrdersWithDetails();
       if (response) {
-        console.log("Orders fetched successfully:", response);
         setOrders(response);
         setOrdersList(response); // Assuming you want to keep this state for some reason
       } else {
@@ -74,8 +70,8 @@ const DashboardContent = () => {
   };
   useEffect(() => {
     fetchData(); // Fetch data when the component mounts
-  }, [refresh]);
-  const formatDate = (timestamp: any) => {
+  }, []);
+  const formatDate = (timestamp) => {
     const milliseconds =
       timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
 
@@ -160,12 +156,6 @@ const DashboardContent = () => {
           <option value="abonnements">Abonnements</option>
         </select>
       </div>
-
-      {submitting && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30  z-20">
-          <Spinner />
-        </div>
-      )}
 
       <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
         <table className="w-full text-left border-collapse">

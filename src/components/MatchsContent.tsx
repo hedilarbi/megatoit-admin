@@ -48,7 +48,7 @@ const MatchsContent = () => {
   useEffect(() => {
     fetchData(); // Fetch data when the component mounts
   }, [refresh]);
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp) => {
     const milliseconds =
       timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
 
