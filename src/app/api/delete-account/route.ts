@@ -22,7 +22,7 @@ export async function DELETE(req: NextRequest) {
     await db.collection("users").doc(uid).delete();
 
     return NextResponse.json({ success: true, uid });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error deleting user:", error);
     return NextResponse.json({ success: false, error: error.message });
   }

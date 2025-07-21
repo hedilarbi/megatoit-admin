@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import Spinner from "./spinner/Spinner";
 import toast from "react-hot-toast";
 import {
-  addAbonement,
   getAbonementById,
   updateAbonement,
 } from "@/services/abonement.service";
