@@ -25,7 +25,7 @@ const AbonementsContent = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      setError(null);
+      setError("");
       const response = await getAllAbonements();
       if (response.success) {
         setAbonements(response.data ?? []);
