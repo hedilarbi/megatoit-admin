@@ -47,7 +47,7 @@ const AbonementsContent = () => {
   const handleDelete = async () => {
     try {
       setSubmitting(true);
-      const response = await deleteAbonnement(abonementToDelete?.id as string);
+      const response = await deleteAbonnement(abonementToDelete?.id);
       if (response.success) {
         setRefresh((prev) => prev + 1); // Refresh the data after deletion
         setShowDeleteModal(false);
