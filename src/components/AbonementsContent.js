@@ -62,7 +62,7 @@ const AbonementsContent = () => {
     }
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (event) => {
     const searchTerm = event.target.value.toLowerCase();
     const filteredabonements = abonementsList.filter((match) =>
       match.title.toLowerCase().includes(searchTerm)
