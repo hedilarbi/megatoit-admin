@@ -15,20 +15,6 @@ export const addMatch = async (match) => {
   try {
     const matchsCollection = collection(db, "matchs");
 
-    // Check for existing match with the same title
-    console.log("Match data:", match);
-    const titleQuery = query(
-      matchsCollection,
-      where("opponent.name", "==", match.opponent.name)
-    );
-    const titleSnapshot = await getDocs(titleQuery);
-    if (!titleSnapshot.empty) {
-      return {
-        success: false,
-        error: "Un match avec le même titre existe déjà",
-      };
-    }
-
     // Check for existing match with the same date
     const dateQuery = query(matchsCollection, where("date", "==", match.date));
     const dateSnapshot = await getDocs(dateQuery);
