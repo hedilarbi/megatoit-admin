@@ -1,21 +1,11 @@
-// app/commandes/[code]/page.tsx
+// app/…/[code]/page.tsx
 
 import OrderComponent from "@/components/OrderComponent";
 import Link from "next/link";
-import React from "react";
 import { FaArrowLeftLong } from "react-icons/fa6";
 
-// 1) Define the shape of your params
-interface PageProps {
-  params: {
-    code: string;
-  };
-}
-
-// 2) Annotate your function with that type
-const Page = async ({ params }: PageProps) => {
+export default async function Page({ params }: { params: { code: string } }) {
   const { code } = params;
-
   return (
     <div className="h-screen p-6 bg-gray-100 relative">
       <div className="max-w-7xl mx-auto">
@@ -32,6 +22,4 @@ const Page = async ({ params }: PageProps) => {
       <OrderComponent code={code} />
     </div>
   );
-};
-
-export default Page;
+}
