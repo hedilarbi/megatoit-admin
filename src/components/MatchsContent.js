@@ -15,7 +15,7 @@ const MatchsContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [matchToDelete, setMatchToDelete] = useState > null;
+  const [matchToDelete, setMatchToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const fetchData = async () => {
