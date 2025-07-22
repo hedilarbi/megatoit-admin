@@ -12,7 +12,7 @@ const CreateAbonnementForm = () => {
   const [price, setPrice] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title || !startYear || !endYear || !price) {

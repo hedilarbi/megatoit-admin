@@ -2,16 +2,16 @@
 import { getAllTickets } from "@/services/match.service";
 import React, { useState, useEffect } from "react";
 import Spinner from "./spinner/Spinner";
-import { Match } from "@/types/match";
+
 import { WarningIcon } from "@/assets/svgs";
 
 import Image from "next/image";
 
 const TicketsContent = () => {
   const [tickets, setTickets] = useState([]);
-  const [ticketsList, setTicketsList] = useState<Match[]>([]); // Unused state, can be removed if not needed
+  const [ticketsList, setTicketsList] = useState([]); // Unused state, can be removed if not needed
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -33,7 +33,7 @@ const TicketsContent = () => {
     }
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (event) => {
     const searchTerm = event.target.value.toLowerCase();
     const filteredMatchs = ticketsList.filter((ticket) =>
       ticket.TicketCode.toLowerCase().includes(searchTerm)
@@ -49,7 +49,7 @@ const TicketsContent = () => {
 
     const date = new Date(milliseconds);
 
-    const options: Intl.DateTimeFormatOptions = {
+    const options = {
       weekday: "long", // "Lundi"
       day: "numeric", // "24"
       month: "long", // "mars"

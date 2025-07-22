@@ -17,14 +17,14 @@ const UpdateAbonnementForm = () => {
   const [endYear, setEndYear] = useState("2027");
   const [status, setStatus] = useState("active");
   const [price, setPrice] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const fetchAbonnementData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getAbonementById(abonementId as string);
+      const response = await getAbonementById(abonementId);
       if (response.success) {
         const abonnement = response.data;
         setTitle(abonnement.title || "Hockey Team");
@@ -52,7 +52,7 @@ const UpdateAbonnementForm = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title || !startYear || !endYear || !price) {

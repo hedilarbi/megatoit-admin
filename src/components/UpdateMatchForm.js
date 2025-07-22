@@ -20,13 +20,13 @@ const UpdateMatchForm = () => {
   const [ticketPrice, setTicketPrice] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const fetchMatchData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getMatchByUid(matchId as string);
+      const response = await getMatchByUid(matchId);
       console.log("Response from getMatchByUid:", response);
       if (response.success) {
         const match = response.data;
@@ -55,7 +55,7 @@ const UpdateMatchForm = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!opponent || !date || !location || !totalSeats || !ticketPrice) {

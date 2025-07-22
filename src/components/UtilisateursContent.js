@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Spinner from "./spinner/Spinner";
-import { Match } from "@/types/match";
+
 import { WarningIcon } from "@/assets/svgs";
 
 import Image from "next/image";
@@ -11,9 +11,9 @@ import { getAllUsers } from "@/services/user.service";
 import { MdBlock } from "react-icons/md";
 const UtilisateursContent = () => {
   const [users, setUsers] = useState([]);
-  const [usersList, setUsersList] = useState<Match[]>([]); // Unused state, can be removed if not needed
+  const [usersList, setUsersList] = useState([]); // Unused state, can be removed if not needed
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = (useState < string) | (null > null);
 
   const fetchData = async () => {
     try {
@@ -35,7 +35,7 @@ const UtilisateursContent = () => {
     }
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (event) => {
     const searchTerm = event.target.value.toLowerCase();
     const filteredMatchs = usersList.filter((user) =>
       user.userName.toLowerCase().includes(searchTerm)
@@ -51,7 +51,7 @@ const UtilisateursContent = () => {
 
     const date = new Date(milliseconds);
 
-    const options: Intl.DateTimeFormatOptions = {
+    const options = {
       weekday: "long", // "Lundi"
       day: "numeric", // "24"
       month: "long", // "mars"

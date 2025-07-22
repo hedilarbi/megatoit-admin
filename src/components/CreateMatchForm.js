@@ -14,7 +14,7 @@ const CreateMatchForm = () => {
   const [totalSeats, setTotalSeats] = useState("3500");
   const [ticketPrice, setTicketPrice] = useState("15");
   const [submitting, setSubmitting] = useState(false);
-  const [equipes, setEquipes] = useState<string[]>([]);
+  const [equipes, setEquipes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchEquipes = async () => {
@@ -43,7 +43,7 @@ const CreateMatchForm = () => {
     fetchEquipes();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const oponentData = equipes.find((team) => team.id === opponent);

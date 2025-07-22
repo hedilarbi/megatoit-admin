@@ -36,7 +36,7 @@ const OrderComponent = ({ code }) => {
 
     const date = new Date(milliseconds);
 
-    const options: Intl.DateTimeFormatOptions = {
+    const options = {
       weekday: "long", // "Lundi"
       day: "numeric", // "24"
       month: "long", // "mars"

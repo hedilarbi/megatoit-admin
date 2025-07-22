@@ -2,7 +2,7 @@
 import { deleteMatch, getAllMatches } from "@/services/match.service";
 import React, { useState, useEffect } from "react";
 import Spinner from "./spinner/Spinner";
-import { Match } from "@/types/match";
+
 import { WarningIcon } from "@/assets/svgs";
 import { IoPencil, IoTrash } from "react-icons/io5";
 import Image from "next/image";
@@ -10,12 +10,12 @@ import Link from "next/link";
 import DeleteWarningModal from "./DeleteWarningModal";
 import toast from "react-hot-toast";
 const MatchsContent = () => {
-  const [matchs, setMatchs] = useState<Match[]>([]);
-  const [matchsList, setMatchsList] = useState<Match[]>([]); // Unused state, can be removed if not needed
+  const [matchs, setMatchs] = useState([]);
+  const [matchsList, setMatchsList] = useState([]); // Unused state, can be removed if not needed
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [matchToDelete, setMatchToDelete] = useState<Match | null>(null);
+  const [matchToDelete, setMatchToDelete] = useState > null;
   const [submitting, setSubmitting] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const fetchData = async () => {
@@ -38,7 +38,7 @@ const MatchsContent = () => {
     }
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (event) => {
     const searchTerm = event.target.value.toLowerCase();
     const filteredMatchs = matchsList.filter((match) =>
       match.opponent.name.toLowerCase().includes(searchTerm)
@@ -54,7 +54,7 @@ const MatchsContent = () => {
 
     const date = new Date(milliseconds);
 
-    const options: Intl.DateTimeFormatOptions = {
+    const options = {
       weekday: "long", // "Lundi"
       day: "numeric", // "24"
       month: "long", // "mars"

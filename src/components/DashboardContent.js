@@ -15,7 +15,7 @@ const DashboardContent = () => {
   const [orders, setOrders] = useState([]);
   const [ordersList, setOrdersList] = useState([]); // Unused state, can be removed if not needed
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const [type, setType] = useState("tous");
 
@@ -39,7 +39,7 @@ const DashboardContent = () => {
     }
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (event) => {
     const searchTerm = event.target.value.toLowerCase();
     if (type === "tous") {
       const filteredOrders = ordersList.filter(
@@ -77,7 +77,7 @@ const DashboardContent = () => {
 
     const date = new Date(milliseconds);
 
-    const options: Intl.DateTimeFormatOptions = {
+    const options = {
       weekday: "long", // "Lundi"
       day: "numeric", // "24"
       month: "long", // "mars"
@@ -124,7 +124,7 @@ const DashboardContent = () => {
       </div>
     );
   }
-  const handleTypeChange = (newType: string) => {
+  const handleTypeChange = (newType) => {
     setType(newType);
     if (newType === "tous") {
       setOrders(ordersList);
