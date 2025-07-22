@@ -8,21 +8,18 @@ import { IoPencil, IoTrash } from "react-icons/io5";
 import Image from "next/image";
 import Link from "next/link";
 import DeleteWarningModal from "./DeleteWarningModal";
-import { Abonement } from "@/types/abonement";
 import {
   deleteAbonnement,
   getAllAbonements,
 } from "@/services/abonement.service";
 import toast from "react-hot-toast";
 const AbonementsContent = () => {
-  const [abonements, setAbonements] = useState<Abonement[]>([]);
-  const [abonementsList, setAbonementsList] = useState<Abonement[]>([]); // Unused state, can be removed if not needed
+  const [abonements, setAbonements] = useState([]);
+  const [abonementsList, setAbonementsList] = useState([]); // Unused state, can be removed if not needed
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [abonementToDelete, setAbonementToDelete] = useState<Abonement | null>(
-    null
-  );
+  const [abonementToDelete, setAbonementToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const fetchData = async () => {
