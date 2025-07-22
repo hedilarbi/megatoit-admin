@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "noImplicitAny": false,
     "plugins": [
       {
         "name": "next"
@@ -22,6 +23,16 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/components/ComptesContent.js",
+    "src/components/AbonementsContent.js",
+    "src/app/api/delete-account/route.js",
+    "src/app/api/create-user/route.js",
+    "src/app/(protected)/tableau-de-bord/commandes/[code]/page.js"
+  ],
   "exclude": ["node_modules"]
 }

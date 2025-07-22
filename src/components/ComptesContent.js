@@ -8,16 +8,15 @@ import { IoTrash } from "react-icons/io5";
 import Image from "next/image";
 
 import DeleteWarningModal from "./DeleteWarningModal";
-import { Abonement } from "@/types/abonement";
 
 import toast from "react-hot-toast";
 import { getAllEmployees, updateAccountStatus } from "@/services/user.service";
 import axios from "axios";
 const ComptesContent = () => {
-  const [comptes, setComptes] = useState<Abonement[]>([]);
+  const [comptes, setComptes] = useState([]);
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [compteToDelete, setCompteToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -64,7 +63,7 @@ const ComptesContent = () => {
     }
   };
 
-  const handleUpdateStatus = async (uid: string, status: string) => {
+  const handleUpdateStatus = async (uid, status) => {
     try {
       setSubmitting(true);
       const response = await updateAccountStatus(uid, status);
