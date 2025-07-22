@@ -11,7 +11,7 @@ if (!getApps().length) {
   });
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   const { email, password, name } = await req.json();
 
   try {
