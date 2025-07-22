@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
@@ -12,7 +12,7 @@ if (!getApps().length) {
   });
 }
 
-export async function DELETE(req: NextRequest) {
+export async function DELETE(req) {
   const { uid } = await req.json();
 
   try {
