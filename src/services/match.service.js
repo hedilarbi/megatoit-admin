@@ -1,6 +1,5 @@
 import { db } from "@/lib/firebase";
 
-import { MatchData } from "@/types/match";
 import {
   doc,
   setDoc,
@@ -12,7 +11,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 
-export const addMatch = async (match: MatchData) => {
+export const addMatch = async (match) => {
   try {
     const matchsCollection = collection(db, "matchs");
 
@@ -71,7 +70,7 @@ export const getAllMatches = async () => {
   }
 };
 
-export const getMatchByUid = async (uid: string) => {
+export const getMatchByUid = async (uid) => {
   try {
     const matchDoc = await getDoc(doc(db, "matchs", uid));
     return { success: true, data: matchDoc.data() };
@@ -85,7 +84,7 @@ export const getMatchByUid = async (uid: string) => {
   }
 };
 
-export const updateMatch = async (id: string, updatedMatch: MatchData) => {
+export const updateMatch = async (id, updatedMatch) => {
   try {
     const matchsCollection = collection(db, "matchs");
 
@@ -138,7 +137,7 @@ export const updateMatch = async (id: string, updatedMatch: MatchData) => {
   }
 };
 
-export const deleteMatch = async (id: string) => {
+export const deleteMatch = async (id) => {
   try {
     const matchRef = doc(db, "matchs", id);
     const matchDoc = await getDoc(matchRef);

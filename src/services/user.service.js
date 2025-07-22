@@ -1,6 +1,5 @@
 import { db } from "@/lib/firebase";
 
-import { UserData } from "@/types/user";
 import {
   doc,
   setDoc,
@@ -11,11 +10,11 @@ import {
   query,
 } from "firebase/firestore";
 
-export const getUserDocument = async (uid: string) => {
+export const getUserDocument = async (uid) => {
   try {
     const userDoc = await getDoc(doc(db, "users", uid));
     if (userDoc.exists()) {
-      return userDoc.data() as Omit<UserData, "uid">;
+      return userDoc.data();
     }
     return null;
   } catch (error) {
@@ -29,9 +28,9 @@ export const getAllUsers = async () => {
     const usersCollection = collection(db, "users");
     const clientsQuery = query(usersCollection, where("type", "==", "client"));
     const clientsSnapshot = await getDocs(clientsQuery);
-    const clients: UserData[] = [];
+    const clients = [];
     clientsSnapshot.forEach((doc) => {
-      clients.push({ ...doc.data(), uid: doc.id } as UserData);
+      clients.push({ ...doc.data(), uid: doc.id });
     });
     return { success: true, data: clients };
   } catch (error) {
@@ -48,9 +47,9 @@ export const getAllEmployees = async () => {
       where("type", "==", "employee")
     );
     const employeesSnapshot = await getDocs(employeesQuery);
-    const employees: UserData[] = [];
+    const employees = [];
     employeesSnapshot.forEach((doc) => {
-      employees.push({ ...doc.data(), uid: doc.id } as UserData);
+      employees.push({ ...doc.data(), uid: doc.id });
     });
     return { success: true, data: employees };
   } catch (error) {
@@ -59,10 +58,7 @@ export const getAllEmployees = async () => {
   }
 };
 
-export const updateAccountStatus = async (
-  uid: string,
-  status: "actif" | "inactif"
-) => {
+export const updateAccountStatus = async (uid, status) => {
   try {
     const userRef = doc(db, "users", uid);
     await setDoc(userRef, { status }, { merge: true });

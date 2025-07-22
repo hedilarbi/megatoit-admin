@@ -1,6 +1,5 @@
 import { db } from "@/lib/firebase";
 
-import { AbonementData } from "@/types/abonement";
 import {
   doc,
   setDoc,
@@ -12,7 +11,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 
-export const addAbonement = async (abonement: AbonementData) => {
+export const addAbonement = async (abonement) => {
   try {
     const abonementsCollection = collection(db, "abonements");
 
@@ -49,7 +48,7 @@ export const getAllAbonements = async () => {
     const abonements = abonementsSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    })) as AbonementData[];
+    }));
 
     return { success: true, data: abonements };
   } catch (error) {
@@ -62,10 +61,7 @@ export const getAllAbonements = async () => {
   }
 };
 
-export const updateAbonement = async (
-  abonementId: string,
-  updatedData: Partial<AbonementData>
-) => {
+export const updateAbonement = async (abonementId, updatedData) => {
   try {
     const abonementRef = doc(db, "abonements", abonementId);
     const abonementDoc = await getDoc(abonementRef);
@@ -88,11 +84,11 @@ export const updateAbonement = async (
   }
 };
 
-export const getAbonementById = async (abonementId: string) => {
+export const getAbonementById = async (abonementId) => {
   try {
     const abonementDoc = await getDoc(doc(db, "abonements", abonementId));
     if (abonementDoc.exists()) {
-      return { success: true, data: abonementDoc.data() as AbonementData };
+      return { success: true, data: abonementDoc.data() };
     } else {
       return { success: false, error: "Abonnement non trouvé" };
     }
@@ -106,7 +102,7 @@ export const getAbonementById = async (abonementId: string) => {
   }
 };
 
-export const deleteAbonnement = async (id: string) => {
+export const deleteAbonnement = async (id) => {
   try {
     const abonementRef = doc(db, "abonements", id);
     const abonementDoc = await getDoc(abonementRef);
