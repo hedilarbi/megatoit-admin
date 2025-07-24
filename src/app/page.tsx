@@ -13,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        router.replace("/dashboard");
+        router.replace("/tableau-de-bord");
       } else {
         router.replace("/connexion");
       }

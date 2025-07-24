@@ -8,7 +8,7 @@ const CreateAbonnementForm = () => {
 
   const [startYear, setStartYear] = useState("2026");
   const [endYear, setEndYear] = useState("2027");
-
+  const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -39,6 +39,7 @@ const CreateAbonnementForm = () => {
         price: parseFloat(price),
         status: "active",
         createdAt: new Date().toISOString(),
+        description: description,
       };
       const response = await addAbonement(abonnementData);
       if (response) {
@@ -135,6 +136,24 @@ const CreateAbonnementForm = () => {
               onChange={(e) => setPrice(e.target.value)}
               className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               placeholder="Ex: 20.00"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="ticketPrice"
+              className="block text-sm font-medium text-gray-700"
+            >
+              déscription
+            </label>
+            <textarea
+              type="text"
+              id="description"
+              name="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              placeholder=""
             />
           </div>
         </div>
