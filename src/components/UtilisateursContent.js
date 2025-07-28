@@ -13,7 +13,7 @@ const UtilisateursContent = () => {
   const [users, setUsers] = useState([]);
   const [usersList, setUsersList] = useState([]); // Unused state, can be removed if not needed
   const [loading, setLoading] = useState(true);
-  const [error, setError] = (useState < string) | (null > null);
+  const [error, setError] = useState(null);
 
   const fetchData = async () => {
     try {
