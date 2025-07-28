@@ -94,7 +94,7 @@ export async function POST(request) {
     }
 
     await db.collection("tickets").doc(qrCode).update({
-      used: true,
+      isUsed: true,
       usedBy: decodedToken.uid,
       usedAt: new Date(),
     });
