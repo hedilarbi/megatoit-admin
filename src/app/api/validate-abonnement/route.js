@@ -50,21 +50,20 @@ export async function POST(request) {
     }
     const body = await request.json();
 
-    const { matchId, ticketId } = body;
+    const { matchId, subscriptionId } = body;
 
-    if (!ticketId || !matchId) {
-      return NextResponse.json({ error: "Qr Code invalide" }, { status: 400 });
+    if (!matchId || !subscriptionId) {
+      return NextResponse.json({ error: "Qr code invalide" }, { status: 400 });
     }
-    const ticketSnapshot = await db.collection("tickets").doc(ticketId).get();
-    const ticket = ticketSnapshot.data();
-    if (!ticket) {
-      return NextResponse.json({ error: "Billet non trouvé" }, { status: 404 });
-    }
-
-    if (ticket.isUsed) {
+    const subSnapshot = await db
+      .collection("subscriptions")
+      .doc(subscriptionId)
+      .get();
+    const subscription = subSnapshot.data();
+    if (!subscription) {
       return NextResponse.json(
-        { error: "Ticket déjà utilisé" },
-        { status: 400 }
+        { error: "Abonnement non trouvé" },
+        { status: 404 }
       );
     }
 
@@ -92,12 +91,20 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+    if (subscription.matchs && subscription.matchs.includes(matchId)) {
+      return NextResponse.json(
+        { error: "Abonnement déjà utilisé pour ce match" },
+        { status: 400 }
+      );
+    }
 
-    await db.collection("tickets").doc(ticketId).update({
-      isUsed: true,
-      usedBy: decodedToken.uid,
-      usedAt: new Date(),
-    });
+    // Ajoute le matchId dans subscription.matchs
+    await db
+      .collection("subscriptions")
+      .doc(subscriptionId)
+      .update({
+        matchs: [...(subscription.matchs || []), matchId],
+      });
 
     return NextResponse.json({ success: true });
   } catch (error) {
