@@ -54,19 +54,19 @@ const MatchsContent = () => {
 
     const date = new Date(milliseconds);
 
-    const options = {
-      weekday: "long", // "Lundi"
-      day: "numeric", // "24"
-      month: "long", // "mars"
-      year: "numeric", // "2025"
-      hour: "2-digit", // "13"
-      minute: "2-digit", // "00"
-      hour12: false, // Use 24-hour format
-    };
+    const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
+    let time = date.toTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    time = time.substring(0, 5); // Extracting only the time part (HH:MM)
+    const formattedDateShort = date.toLocaleDateString("fr-FR", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
 
-    const formattedDate = date
-      .toLocaleDateString("fr-FR", options)
-      .replace(",", " à"); // Replace comma with " à"
+    const formattedDate = `${dayName} ${formattedDateShort} à ${time}`;
     return formattedDate;
   };
   const handleDelete = async () => {

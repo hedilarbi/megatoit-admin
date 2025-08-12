@@ -15,6 +15,8 @@ const CreateMatchForm = () => {
   const [ticketPrice, setTicketPrice] = useState("15");
   const [submitting, setSubmitting] = useState(false);
   const [equipes, setEquipes] = useState([]);
+  const [type, setType] = useState("Domicile");
+
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchEquipes = async () => {
@@ -60,7 +62,7 @@ const CreateMatchForm = () => {
         date: new Date(date),
         place: location,
         totalSeats: parseInt(totalSeats, 10),
-        type: "Domicile",
+        type,
         category: "Ligue",
         availableSeats: parseInt(totalSeats, 10), // Initial available seats are equal to total seats
         price: parseFloat(ticketPrice),
@@ -151,6 +153,24 @@ const CreateMatchForm = () => {
             className=" p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           /> */}
             <DateTimePicker onChange={setDate} value={date} />
+          </div>
+          <div>
+            <label
+              htmlFor="type"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Type de match
+            </label>
+            <select
+              id="type"
+              name="type"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+              <option value="Domicile">Domicile</option>
+              <option value="Éxtérieur">Éxtérieur</option>
+            </select>
           </div>
 
           <div>
