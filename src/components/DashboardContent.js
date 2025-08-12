@@ -188,7 +188,7 @@ const DashboardContent = () => {
                     {order.matchId ? "Match" : "Abonnement"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {order.userDetails.userName}
+                    {order.userDetails?.userName}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {formatDate(order.createdAt)}
