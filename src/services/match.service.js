@@ -75,22 +75,7 @@ export const updateMatch = async (id, updatedMatch) => {
     const matchsCollection = collection(db, "matchs");
 
     // Check for existing match with the same title (excluding the current match)
-    const titleQuery = query(
-      matchsCollection,
-      where("title", "==", updatedMatch.title)
-    );
-    const titleSnapshot = await getDocs(titleQuery);
-    if (
-      !titleSnapshot.empty &&
-      titleSnapshot.docs.some((doc) => doc.id !== id)
-    ) {
-      return {
-        success: false,
-        error: "Un match avec le même titre existe déjà",
-      };
-    }
 
-    // Check for existing match with the same date (excluding the current match)
     const dateQuery = query(
       matchsCollection,
       where("date", "==", updatedMatch.date)

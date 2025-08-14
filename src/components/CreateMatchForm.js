@@ -16,6 +16,7 @@ const CreateMatchForm = () => {
   const [submitting, setSubmitting] = useState(false);
   const [equipes, setEquipes] = useState([]);
   const [type, setType] = useState("Domicile");
+  const [category, setCategory] = useState("Saison  ");
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -169,10 +170,27 @@ const CreateMatchForm = () => {
               className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             >
               <option value="Domicile">Domicile</option>
-              <option value="Éxtérieur">Éxtérieur</option>
+              <option value="À l'étranger">À l&apos;étranger</option>
             </select>
           </div>
-
+          <div>
+            <label
+              htmlFor="type"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Catégorie de match
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+              <option value="Saison">Saison</option>
+              <option value="Présaison">Présaison</option>
+            </select>
+          </div>
           <div>
             <label
               htmlFor="location"

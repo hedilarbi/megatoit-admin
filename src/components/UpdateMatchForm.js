@@ -21,6 +21,8 @@ const UpdateMatchForm = () => {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [type, setType] = useState("Domicile");
+  const [category, setCategory] = useState("Saison");
 
   const fetchMatchData = async () => {
     try {
@@ -31,9 +33,10 @@ const UpdateMatchForm = () => {
       if (response.success) {
         const match = response.data;
 
-        setOpponent(match.title.split(" vs ")[1] || "");
+        setOpponent(match.opponent);
         const formatedDate = formatDate(match.date);
-        console.log("Formatted date:", formatedDate);
+        setType(match.type || "Domicile");
+        setCategory(match.category || "Saison");
         setDate(new Date(formatedDate));
         setLocation(match.place || "");
         setTotalSeats(match.totalSeats.toString() || "");
@@ -66,12 +69,14 @@ const UpdateMatchForm = () => {
     try {
       setSubmitting(true);
       const matchData = {
-        title: "Hockey Team vs " + opponent,
+        opponent,
         date: new Date(date),
         place: location,
         totalSeats: parseInt(totalSeats, 10),
         availableSeats: parseInt(totalSeats, 10), // Initial available seats are equal to total seats
         price: parseFloat(ticketPrice),
+        type,
+        category,
       };
       const response = await updateMatch(matchId, matchData);
       if (response.success) {
@@ -150,18 +155,9 @@ const UpdateMatchForm = () => {
                 Hockey Team
               </span>
               <span>VS</span>
-              <select
-                id="opponent"
-                name="opponent"
-                value={opponent}
-                onChange={(e) => setOpponent(e.target.value)}
-                className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              >
-                <option value="">Sélectionnez l&apos;adversaire</option>
-                <option value="Adversaire FC">Adversaire FC</option>
-                <option value="Team B">Team B</option>
-                <option value="Team C">Team C</option>
-              </select>
+              <span className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm  sm:text-sm bg-gray-100">
+                {opponent.name}
+              </span>
             </div>
           </div>
 
@@ -182,7 +178,42 @@ const UpdateMatchForm = () => {
           /> */}
             <DateTimePicker onChange={setDate} value={date} />
           </div>
-
+          <div>
+            <label
+              htmlFor="type"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Type de match
+            </label>
+            <select
+              id="type"
+              name="type"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+              <option value="Domicile">Domicile</option>
+              <option value="À l'étranger">À l&apos;étranger</option>
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="type"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Catégorie de match
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+              <option value="Saison">Saison</option>
+              <option value="Présaison">Présaison</option>
+            </select>
+          </div>
           <div>
             <label
               htmlFor="location"
