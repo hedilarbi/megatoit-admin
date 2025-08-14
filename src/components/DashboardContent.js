@@ -185,7 +185,7 @@ const DashboardContent = () => {
                 <tr key={order.code} className="hover:bg-gray-100 transition">
                   <td className="px-6 py-4 text-gray-700">{order.code}</td>
                   <td className="px-6 py-4 text-gray-700">
-                    {order.matchId ? "Match" : "Abonnement"}
+                    {order.matchId ? "Billets" : "Abonnement"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {order.userDetails?.userName}

@@ -152,7 +152,8 @@ export const getTeams = async () => {
 export const getAllTickets = async () => {
   try {
     const ticketsCollection = collection(db, "tickets");
-    const ticketsSnapshot = await getDocs(ticketsCollection);
+    const ticketsQuery = query(ticketsCollection, orderBy("createdAt", "desc"));
+    const ticketsSnapshot = await getDocs(ticketsQuery);
     const tickets = ticketsSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),

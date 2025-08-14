@@ -155,14 +155,12 @@ const MatchsContent = () => {
               <th className="px-6 py-3 text-sm font-medium">Arène</th>
               <th className="px-6 py-3 text-sm font-medium">Type</th>
               <th className="px-6 py-3 text-sm font-medium">Catégorie</th>
-              <th className="px-6 py-3 text-sm font-medium">
-                Nombre de sièges total
-              </th>
+
               <th className="px-6 py-3 text-sm font-medium">
                 Nombre de sièges disponibles
               </th>
 
-              <th className="px-6 py-3 text-sm font-medium">Prix</th>
+              <th className="px-6 py-3 text-sm font-medium">Billets utilisé</th>
               <th className="px-6 py-3 text-sm font-medium">Actions</th>
             </tr>
           </thead>
@@ -192,17 +190,12 @@ const MatchsContent = () => {
                   <td className="px-6 py-4 text-gray-700">
                     {match.category || "Non spécifié"}
                   </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {match.totalSeats}
-                  </td>
+
                   <td className="px-6 py-4 text-gray-700">
                     {match.availableSeats}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {match.price.toLocaleString("fr-FR", {
-                      style: "currency",
-                      currency: "CAD",
-                    })}
+                    {match.ticketsUsed || 0}
                   </td>
                   <td className="px-6 py-4 flex space-x-5 items-center ">
                     <Link

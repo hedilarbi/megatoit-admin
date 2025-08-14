@@ -4,13 +4,16 @@ import {
   getDocs,
   doc,
   getDoc,
+  query,
+  orderBy,
 } from "firebase/firestore";
 
 const db = getFirestore();
 
 export const getOrdersWithDetails = async () => {
   const ordersCollection = collection(db, "orders");
-  const ordersSnapshot = await getDocs(ordersCollection);
+  const ordersQuery = query(ordersCollection, orderBy("createdAt", "desc"));
+  const ordersSnapshot = await getDocs(ordersQuery);
   const orders = [];
 
   for (const orderDoc of ordersSnapshot.docs) {

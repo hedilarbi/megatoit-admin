@@ -40,19 +40,19 @@ const navItems: NavItem[] = [
     matchPattern: /^\/matchs(\/.*)?$/, // Matches /patients and /patients/[id]
   },
   {
-    label: "Tickets",
+    label: "Billets",
     href: "/tickets",
     icon: <FaTicket />,
     ariaLabel: "Navigate to invitations",
     matchPattern: /^\/tickets(\/.*)?$/, // Matches /patients and /patients/[id]
   },
-  {
-    label: "Abonnements",
-    href: "/abonnements",
-    icon: <FaRegIdCard />,
-    ariaLabel: "Navigate to patients",
-    matchPattern: /^\/abonnements(\/.*)?$/, // Matches /patients and /patients/[id]
-  },
+  // {
+  //   label: "Abonnements",
+  //   href: "/abonnements",
+  //   icon: <FaRegIdCard />,
+  //   ariaLabel: "Navigate to patients",
+  //   matchPattern: /^\/abonnements(\/.*)?$/, // Matches /patients and /patients/[id]
+  // },
 
   {
     label: "Utilisateurs",
