@@ -106,6 +106,10 @@ export async function POST(request) {
         matchs: [...(subscription.matchs || []), matchId],
       });
 
+    await matchsRef.doc(matchId).update({
+      subsUsed: match.subsUsed ? match.subsUsed + 1 : 1,
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Token verification failed:", error);
