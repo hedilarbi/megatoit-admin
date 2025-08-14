@@ -135,7 +135,7 @@ const MatchsContent = () => {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Rechercher un match..."
+          placeholder="Rechercher un match par adversaire..."
           className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           onChange={handleSearch}
         />
@@ -152,6 +152,9 @@ const MatchsContent = () => {
             <tr>
               <th className="px-6 py-3 text-sm font-medium">Adversaire</th>
               <th className="px-6 py-3 text-sm font-medium">Date du match</th>
+              <th className="px-6 py-3 text-sm font-medium">Arène</th>
+              <th className="px-6 py-3 text-sm font-medium">Type</th>
+              <th className="px-6 py-3 text-sm font-medium">Catégorie</th>
               <th className="px-6 py-3 text-sm font-medium">
                 Nombre de sièges total
               </th>
@@ -179,6 +182,15 @@ const MatchsContent = () => {
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {formatDate(match.date)}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">
+                    {match.place || "Non spécifié"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">
+                    {match.type || "Non spécifié"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">
+                    {match.category || "Non spécifié"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {match.totalSeats}

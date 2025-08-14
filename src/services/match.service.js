@@ -9,6 +9,7 @@ import {
   getDocs,
   query,
   deleteDoc,
+  orderBy,
 } from "firebase/firestore";
 
 export const addMatch = async (match) => {
@@ -41,7 +42,9 @@ export const addMatch = async (match) => {
 export const getAllMatches = async () => {
   try {
     const matchsCollection = collection(db, "matchs");
-    const matchsSnapshot = await getDocs(matchsCollection);
+
+    const q = query(matchsCollection, orderBy("date", "asc"));
+    const matchsSnapshot = await getDocs(q);
     const matchs = matchsSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
