@@ -99,6 +99,10 @@ export async function POST(request) {
       usedAt: new Date(),
     });
 
+    await matchsRef.doc(matchId).update({
+      ticketsUsed: match.ticketsUsed ? match.ticketsUsed + 1 : 1,
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Token verification failed:", error);
