@@ -91,7 +91,10 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    if (subscription.matchs && subscription.matchs.includes(matchId)) {
+    if (
+      subscription.matchs &&
+      subscription.matchs.some((m) => m.matchId === matchId)
+    ) {
       return NextResponse.json(
         { error: "Abonnement déjà utilisé pour ce match" },
         { status: 400 }
@@ -103,7 +106,14 @@ export async function POST(request) {
       .collection("subscriptions")
       .doc(subscriptionId)
       .update({
-        matchs: [...(subscription.matchs || []), matchId],
+        matchs: [
+          ...(subscription.matchs || []),
+          {
+            matchId,
+            usedBy: decodedToken.uid,
+            usedAt: new Date(),
+          },
+        ],
       });
 
     await matchsRef.doc(matchId).update({

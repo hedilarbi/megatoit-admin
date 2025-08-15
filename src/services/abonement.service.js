@@ -1,6 +1,7 @@
 import { db } from "@/lib/firebase";
 
 import {
+  orderBy,
   doc,
   setDoc,
   getDoc,
@@ -118,6 +119,113 @@ export const deleteAbonnement = async (id) => {
     return {
       success: false,
       error: "Une erreur s'est produite lors de la suppression de l'abonnement",
+    };
+  }
+};
+
+export const getAllSubscriptions = async () => {
+  try {
+    const subscriptionsCollection = collection(db, "subscriptions");
+    const subscriptionsQuery = query(
+      subscriptionsCollection,
+      orderBy("createdAt", "desc")
+    );
+    const subscriptionsSnapshot = await getDocs(subscriptionsQuery);
+
+    // Fetch all abonements once and map by id for quick lookup
+    const abonementsSnapshot = await getDocs(collection(db, "abonements"));
+    const abonementsMap = {};
+    abonementsSnapshot.forEach((doc) => {
+      abonementsMap[doc.id] = { id: doc.id, ...doc.data() };
+    });
+
+    const subscriptions = subscriptionsSnapshot.docs.map((doc) => {
+      const data = doc.data();
+      const abonnementId = data.abonnementId;
+      return {
+        id: doc.id,
+        ...data,
+        abonnement: abonnementId ? abonementsMap[abonnementId] || null : null,
+      };
+    });
+
+    return { success: true, data: subscriptions };
+  } catch (error) {
+    console.error("Erreur lors de la récupération des subscriptions :", error);
+    return {
+      success: false,
+      error:
+        "Une erreur s'est produite lors de la récupération des subscriptions",
+    };
+  }
+};
+
+export const getSubscriptionByCode = async (code) => {
+  try {
+    // Get the subscription by code
+    const subscriptionsCollection = collection(db, "subscriptions");
+    const subscriptionQuery = query(
+      subscriptionsCollection,
+      where("code", "==", code)
+    );
+    const subscriptionSnapshot = await getDocs(subscriptionQuery);
+
+    if (subscriptionSnapshot.empty) {
+      return {
+        success: false,
+        error: "Aucune souscription trouvée avec ce code",
+      };
+    }
+
+    const subscriptionDoc = subscriptionSnapshot.docs[0];
+    const subscriptionData = subscriptionDoc.data();
+
+    // Populate abonnement
+    let abonnement = null;
+    if (subscriptionData.abonnementId) {
+      const abonementDoc = await getDoc(
+        doc(db, "abonements", subscriptionData.abonnementId)
+      );
+      abonnement = abonementDoc.exists()
+        ? { id: abonementDoc.id, ...abonementDoc.data() }
+        : null;
+    }
+
+    // Populate user
+    let user = null;
+    if (subscriptionData.userId) {
+      const userDoc = await getDoc(doc(db, "users", subscriptionData.userId));
+      user = userDoc.exists() ? { id: userDoc.id, ...userDoc.data() } : null;
+    }
+
+    // Populate matchs
+    let matchs = [];
+    if (Array.isArray(subscriptionData.matchs)) {
+      const matchPromises = subscriptionData.matchs.map(async (matchId) => {
+        const matchDoc = await getDoc(doc(db, "matchs", matchId.matchId));
+        return matchDoc.exists()
+          ? { id: matchDoc.id, ...matchDoc.data() }
+          : null;
+      });
+      matchs = (await Promise.all(matchPromises)).filter(Boolean);
+    }
+
+    return {
+      success: true,
+      data: {
+        id: subscriptionDoc.id,
+        ...subscriptionData,
+        abonnement,
+        user,
+        matchs,
+      },
+    };
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la souscription :", error);
+    return {
+      success: false,
+      error:
+        "Une erreur s'est produite lors de la récupération de la souscription",
     };
   }
 };

@@ -4,29 +4,23 @@ import React, { useState, useEffect } from "react";
 import Spinner from "./spinner/Spinner";
 
 import { WarningIcon } from "@/assets/svgs";
-import { IoPencil, IoTrash } from "react-icons/io5";
+
 import Image from "next/image";
 import Link from "next/link";
-import DeleteWarningModal from "./DeleteWarningModal";
-import {
-  deleteAbonnement,
-  getAllAbonements,
-} from "@/services/abonement.service";
-import toast from "react-hot-toast";
+
+import { getAllSubscriptions } from "@/services/abonement.service";
+
 const AbonementsContent = () => {
   const [abonements, setAbonements] = useState([]);
   const [abonementsList, setAbonementsList] = useState([]); // Unused state, can be removed if not needed
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [abonementToDelete, setAbonementToDelete] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [refresh, setRefresh] = useState(0);
+
   const fetchData = async () => {
     try {
       setLoading(true);
       setError("");
-      const response = await getAllAbonements();
+      const response = await getAllSubscriptions();
       if (response.success) {
         setAbonements(response.data ?? []);
         setAbonementsList(response.data ?? []); // Assuming you want to keep this state for some reason
@@ -43,35 +37,55 @@ const AbonementsContent = () => {
       setLoading(false);
     }
   };
+  const formatDate = (timestamp) => {
+    const milliseconds =
+      timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
 
-  const handleDelete = async () => {
-    try {
-      setSubmitting(true);
-      const response = await deleteAbonnement(abonementToDelete?.id);
-      if (response.success) {
-        setRefresh((prev) => prev + 1); // Refresh the data after deletion
-        setShowDeleteModal(false);
-      }
-    } catch (error) {
-      console.error("Error deleting abonement:", error);
-      toast.error(
-        "Une erreur s'est produite lors de la suppression de l'abonnement."
-      );
-    } finally {
-      setSubmitting(false);
-    }
+    const date = new Date(milliseconds);
+
+    const options = {
+      weekday: "long", // "Lundi"
+      day: "numeric", // "24"
+      month: "long", // "mars"
+      year: "numeric", // "2025"
+      hour: "2-digit", // "13"
+      minute: "2-digit", // "00"
+      hour12: false, // Use 24-hour format
+    };
+
+    const formattedDate = date
+      .toLocaleDateString("fr-FR", options)
+      .replace(",", " à"); // Replace comma with " à"
+    return formattedDate;
   };
+  // const handleDelete = async () => {
+  //   try {
+  //     setSubmitting(true);
+  //     const response = await deleteAbonnement(abonementToDelete?.id);
+  //     if (response.success) {
+  //       setRefresh((prev) => prev + 1); // Refresh the data after deletion
+  //       setShowDeleteModal(false);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error deleting abonement:", error);
+  //     toast.error(
+  //       "Une erreur s'est produite lors de la suppression de l'abonnement."
+  //     );
+  //   } finally {
+  //     setSubmitting(false);
+  //   }
+  // };
 
   const handleSearch = (event) => {
     const searchTerm = event.target.value.toLowerCase();
     const filteredabonements = abonementsList.filter((match) =>
-      match.title.toLowerCase().includes(searchTerm)
+      match.code.toLowerCase().includes(searchTerm)
     );
     setAbonements(filteredabonements);
   };
   useEffect(() => {
     fetchData(); // Fetch data when the component mounts
-  }, [refresh]);
+  }, []);
 
   if (loading) {
     return (
@@ -107,14 +121,6 @@ const AbonementsContent = () => {
 
   return (
     <>
-      {showDeleteModal && (
-        <DeleteWarningModal
-          message="Êtes-vous sûr de vouloir supprimer cet abonnement ? Cette action est irréversible."
-          setShowModal={setShowDeleteModal}
-          deleter={handleDelete}
-        />
-      )}
-
       <div className="mb-4">
         <input
           type="text"
@@ -123,20 +129,17 @@ const AbonementsContent = () => {
           onChange={handleSearch}
         />
       </div>
-      {submitting && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30  z-20">
-          <Spinner />
-        </div>
-      )}
 
       <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
         <table className="w-full text-left border-collapse">
           <thead className="bg-blue-600 text-white">
             <tr>
-              <th className="px-6 py-3 text-sm font-medium">Titre</th>
-              <th className="px-6 py-3 text-sm font-medium">Season</th>
-              <th className="px-6 py-3 text-sm font-medium">Prix</th>
-              <th className="px-6 py-3 text-sm font-medium">Etat</th>
+              <th className="px-6 py-3 text-sm font-medium">Code</th>
+              <th className="px-6 py-3 text-sm font-medium">Saison</th>
+
+              <th className="px-6 py-3 text-sm font-medium">
+                Date d&apos;achat
+              </th>
 
               <th className="px-6 py-3 text-sm font-medium">Actions</th>
             </tr>
@@ -152,32 +155,25 @@ const AbonementsContent = () => {
             ) : (
               abonements.map((abonement) => (
                 <tr key={abonement.id} className="hover:bg-gray-100 transition">
-                  <td className="px-6 py-4 text-gray-700">{abonement.title}</td>
+                  <td className="px-6 py-4 text-gray-700">{abonement.code}</td>
                   <td className="px-6 py-4 text-gray-700">
-                    {abonement.season}
+                    {abonement.abonnement.title +
+                      "(" +
+                      abonement.abonnement.season +
+                      ")"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {abonement.price.toLocaleString("fr-FR", {
-                      style: "currency",
-                      currency: "CAD",
-                    })}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {abonement.status === "active" ? (
-                      <span className="text-green-600">Actif</span>
-                    ) : (
-                      <span className="text-red-600">Inactif</span>
-                    )}
+                    {formatDate(abonement.createdAt)}
                   </td>
 
                   <td className="px-6 py-4 flex space-x-5 items-center ">
                     <Link
-                      href={`/abonnements/${abonement.id}`}
-                      className="text-blue-600 hover:text-blue-800"
+                      href={`/abonnements/${abonement.code}`}
+                      className="bg-blue-600  text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2"
                     >
-                      <IoPencil size={22} />
+                      Plus de détails
                     </Link>
-                    <button
+                    {/* <button
                       className="text-red-600 hover:text-red-800 cursor-pointer"
                       onClick={() => {
                         setAbonementToDelete(abonement);
@@ -185,7 +181,7 @@ const AbonementsContent = () => {
                       }}
                     >
                       <IoTrash size={22} />
-                    </button>
+                    </button> */}
                   </td>
                 </tr>
               ))
