@@ -27,10 +27,10 @@ type NavItem = {
 // Main navigation items
 const navItems: NavItem[] = [
   {
-    label: "Dashboard",
+    label: "Tableau de bord",
     href: "/tableau-de-bord",
     icon: <MdDashboard />,
-    ariaLabel: "Navigate to dashboard",
+    ariaLabel: "Navigate to tableau de bord",
   },
   {
     label: "Matchs",
