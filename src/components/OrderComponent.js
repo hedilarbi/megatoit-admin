@@ -102,11 +102,11 @@ const OrderComponent = ({ code }) => {
           </div>
           <div className="flex-1">
             <p className="text-gray-700 mb-2">
-              <strong>Type:</strong> {order.matchId ? "Match" : "Abonnement"}
+              <strong>Type:</strong> {order.matchId ? "Billet" : "Abonnement"}
             </p>
             {order.matchId && (
               <p className="text-gray-700 mb-2">
-                <strong>Nombre de tickets:</strong> {order.tickets.length}
+                <strong>Nombre de billets:</strong> {order.tickets.length}
               </p>
             )}
           </div>
@@ -116,7 +116,7 @@ const OrderComponent = ({ code }) => {
         <div className="mt-4">
           <h2 className="text-2xl font-bold mb-4">
             Détails{" "}
-            {order.ticketsDetails.length > 1 ? "des tickets" : "du ticket"}
+            {order.ticketsDetails.length > 1 ? "des billets" : "du billet"}
           </h2>
           {order.ticketsDetails.map((ticket) => (
             <div
@@ -126,7 +126,7 @@ const OrderComponent = ({ code }) => {
               <div className="flex ">
                 <div className="flex-1">
                   <p className="text-gray-700 mb-2">
-                    <strong>Ticket N:</strong> {ticket.TicketCode}
+                    <strong>Billet N:</strong> {ticket.TicketCode}
                   </p>
                   <p className="text-gray-700 mb-2">
                     <strong>Achété le :</strong> {formatDate(ticket.createdAt)}

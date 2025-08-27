@@ -118,9 +118,9 @@ const TicketsContent = () => {
               </th>
 
               <th className="px-6 py-3 text-sm font-medium">Prix (HT)</th>
-              <th className="px-6 py-3 text-sm font-medium">Etat du ticket</th>
+              <th className="px-6 py-3 text-sm font-medium">Etat du billet</th>
 
-              <th className="px-6 py-3 text-sm font-medium">Lien du ticket</th>
+              <th className="px-6 py-3 text-sm font-medium">Lien du billet</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -128,7 +128,7 @@ const TicketsContent = () => {
             {tickets.length === 0 ? (
               <tr className="text-center">
                 <td colSpan={4} className="px-6 py-4 text-gray-500">
-                  Aucun ticket trouvé
+                  Aucun billet trouvé
                 </td>
               </tr>
             ) : (
@@ -160,7 +160,7 @@ const TicketsContent = () => {
                       href={ticket.downloadUrl}
                       className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition"
                     >
-                      Voir le ticket
+                      Voir le billet
                     </a>
                   </td>
                 </tr>

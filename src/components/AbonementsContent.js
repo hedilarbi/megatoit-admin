@@ -38,6 +38,7 @@ const AbonementsContent = () => {
     }
   };
   const formatDate = (timestamp) => {
+    if (!timestamp) return ""; // Handle null or undefined timestamp
     const milliseconds =
       timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
 
@@ -155,20 +156,20 @@ const AbonementsContent = () => {
             ) : (
               abonements.map((abonement) => (
                 <tr key={abonement.id} className="hover:bg-gray-100 transition">
-                  <td className="px-6 py-4 text-gray-700">{abonement.code}</td>
+                  <td className="px-6 py-4 text-gray-700">{abonement?.code}</td>
                   <td className="px-6 py-4 text-gray-700">
-                    {abonement.abonnement.title +
+                    {abonement?.abonnement?.title +
                       "(" +
-                      abonement.abonnement.season +
+                      abonement?.abonnement?.season +
                       ")"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {formatDate(abonement.createdAt)}
+                    {formatDate(abonement?.createdAt)}
                   </td>
 
                   <td className="px-6 py-4 flex space-x-5 items-center ">
                     <Link
-                      href={`/abonnements/${abonement.code}`}
+                      href={`/abonnements/${abonement?.code}`}
                       className="bg-blue-600  text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2"
                     >
                       Plus de détails
