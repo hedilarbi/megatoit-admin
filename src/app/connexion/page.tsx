@@ -2,7 +2,7 @@
 import { getFirebaseErrorMessage } from "@/lib/errorUtils";
 import React, { useState } from "react";
 import Spinner from "@/components/spinner/Spinner";
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase"; // Ensure you have configured Firebase in this file
 import { useRouter } from "next/navigation";
 import { getUserDocument } from "@/services/user.service";
