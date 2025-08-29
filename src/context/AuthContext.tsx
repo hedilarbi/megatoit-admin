@@ -1,8 +1,9 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { User, onAuthStateChanged } from "firebase/auth";
+import { User, onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { getUserDocument } from "@/services/user.service";
 
 // import { UserData } from '@/types/user';
 
@@ -28,6 +29,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        const user = await getUserDocument(firebaseUser.uid);
+        if (user.type !== "admin") {
+          await signOut(auth);
+          setUser(null);
+          return;
+        }
         setUser(firebaseUser);
 
         // try {

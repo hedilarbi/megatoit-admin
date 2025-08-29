@@ -2,9 +2,11 @@
 import { getFirebaseErrorMessage } from "@/lib/errorUtils";
 import React, { useState } from "react";
 import Spinner from "@/components/spinner/Spinner";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase"; // Ensure you have configured Firebase in this file
 import { useRouter } from "next/navigation";
+import { getUserDocument } from "@/services/user.service";
+
 const ConnexionForm = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -21,12 +23,19 @@ const ConnexionForm = () => {
     }
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const response = await signInWithEmailAndPassword(auth, email, password);
+
+      const user = await getUserDocument(response.user.uid);
+      if (user.type !== "admin") {
+        setError("Le compte n'éxiste pas.");
+        //await signOut(auth);
+        setLoading(false);
+        return;
+      }
 
       router.push("/tableau-de-bord");
     } catch (err) {
       setError(getFirebaseErrorMessage(err));
-    } finally {
       setLoading(false);
     }
   };
@@ -34,7 +43,7 @@ const ConnexionForm = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100/50 z-10">
           <Spinner />
         </div>
       )}
