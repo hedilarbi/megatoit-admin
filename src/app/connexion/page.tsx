@@ -26,7 +26,7 @@ const ConnexionForm = () => {
       const response = await signInWithEmailAndPassword(auth, email, password);
 
       const user = await getUserDocument(response.user.uid);
-      if (user.type !== "admin") {
+      if (user?.type !== "admin") {
         setError("Le compte n'éxiste pas.");
         //await signOut(auth);
         setLoading(false);
