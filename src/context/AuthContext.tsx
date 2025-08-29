@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const user = await getUserDocument(firebaseUser.uid);
-        if (user.type !== "admin") {
+        if (user?.type !== "admin") {
           await signOut(auth);
           setUser(null);
           return;
