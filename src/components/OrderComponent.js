@@ -13,7 +13,7 @@ const OrderComponent = ({ code }) => {
     try {
       setLoading(true);
       const response = await getOrderByCode(code);
-      console.log("Response from getOrderByCode:", response);
+
       if (response) {
         setOrder(response);
       } else {
@@ -107,6 +107,18 @@ const OrderComponent = ({ code }) => {
             {order.matchId && (
               <p className="text-gray-700 mb-2">
                 <strong>Nombre de billets:</strong> {order.tickets.length}
+              </p>
+            )}
+            {order.promoCodeId && order.promoCodeDetails && (
+              <p className="text-gray-700 mb-2">
+                <strong>Code promo utilisé:</strong>{" "}
+                {order.promoCodeDetails.code} (
+                {order.promoCodeDetails.type === "percent"
+                  ? `${order.promoCodeDetails.percent}%`
+                  : `$${parseFloat(order.promoCodeDetails.amount).toFixed(
+                      2
+                    )}`}{" "}
+                de réduction)
               </p>
             )}
           </div>

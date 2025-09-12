@@ -51,8 +51,15 @@ export const getOrderByCode = async (code) => {
       }
     }
 
-    // Populate tickets if tickets array exists
+    if (orderData.promoCodeId) {
+      const promoCodeDocRef = doc(db, "promoCodes", orderData.promoCodeId);
+      const promoCodeDoc = await getDoc(promoCodeDocRef);
+      if (promoCodeDoc.exists()) {
+        orderData.promoCodeDetails = promoCodeDoc.data();
+      }
+    }
     if (orderData.tickets && Array.isArray(orderData.tickets)) {
+      // Populate tickets if tickets array exists
       const tickets = [];
       for (const ticketId of orderData.tickets) {
         const ticketDocRef = doc(db, "tickets", ticketId);

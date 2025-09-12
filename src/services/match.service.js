@@ -168,3 +168,76 @@ export const getAllTickets = async () => {
     };
   }
 };
+
+export const createPromoCode = async (codeData) => {
+  try {
+    const promoCodesCollection = collection(db, "promoCodes");
+    console.log("codeData", codeData);
+    // Check for existing promo code with the same code
+    const codeQuery = query(
+      promoCodesCollection,
+      where("code", "==", codeData.code)
+    );
+    const codeSnapshot = await getDocs(codeQuery);
+    if (!codeSnapshot.empty) {
+      return {
+        success: false,
+        error: "Un code promo avec le même nom existe déjà",
+      };
+    }
+
+    const promoCodeRef = doc(collection(db, "promoCodes"));
+    await setDoc(promoCodeRef, codeData);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erreur lors de la création du code promo :", error);
+    return {
+      success: false,
+      error: "Une erreur s'est produite lors de la création du code promo",
+    };
+  }
+};
+
+export const getAllPromoCodes = async () => {
+  try {
+    const promoCodesCollection = collection(db, "promoCodes");
+    const promoCodesSnapshot = await getDocs(promoCodesCollection);
+    const promoCodes = promoCodesSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return { success: true, data: promoCodes };
+  } catch (error) {
+    console.error("Erreur lors de la récupération des codes promo :", error);
+    return {
+      success: false,
+      error:
+        "Une erreur s'est produite lors de la récupération des codes promo",
+    };
+  }
+};
+
+export const deletePromoCode = async (id) => {
+  try {
+    const promoCodeRef = doc(db, "promoCodes", id);
+    const promoCodeDoc = await getDoc(promoCodeRef);
+
+    if (!promoCodeDoc.exists()) {
+      return {
+        success: false,
+        error: "Le code promo à supprimer n'existe pas",
+      };
+    }
+
+    await deleteDoc(promoCodeRef);
+    return { success: true };
+  } catch (error) {
+    console.error("Erreur lors de la suppression du code promo :", error);
+    return {
+      success: false,
+      error: "Une erreur s'est produite lors de la suppression du code promo",
+    };
+  }
+};

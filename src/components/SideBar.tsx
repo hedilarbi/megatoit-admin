@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-import { FaRegIdCard } from "react-icons/fa";
+import { FaRegIdCard, FaTicketAlt } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -52,6 +52,13 @@ const navItems: NavItem[] = [
     icon: <FaRegIdCard />,
     ariaLabel: "Navigate to patients",
     matchPattern: /^\/abonnements(\/.*)?$/, // Matches /patients and /patients/[id]
+  },
+  {
+    label: "Code promotion",
+    href: "/code-promotion",
+    icon: <FaTicketAlt />,
+    ariaLabel: "Navigate to patients",
+    matchPattern: /^\/code-promotion(\/.*)?$/, // Matches /patients and /patients/[id]
   },
 
   {
