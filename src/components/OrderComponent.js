@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import Spinner from "./spinner/Spinner";
 import Image from "next/image";
 import { WarningIcon } from "@/assets/svgs";
+import Link from "next/link";
 
 const OrderComponent = ({ code }) => {
   const [order, setOrder] = React.useState(null);
@@ -13,7 +14,7 @@ const OrderComponent = ({ code }) => {
     try {
       setLoading(true);
       const response = await getOrderByCode(code);
-
+      console.log("Response from getOrderByCode:", response);
       if (response) {
         setOrder(response);
       } else {
@@ -156,6 +157,13 @@ const OrderComponent = ({ code }) => {
                     <strong>Utilisation:</strong>{" "}
                     {ticket.isUsed ? "utilisé" : "non utilisé"}
                   </p>
+                  <Link
+                    href={ticket.downloadUrl}
+                    className="bg-blue-500 text-white rounded-md py-2 px-4 hover:underline"
+                    target="_blank"
+                  >
+                    Voir le billet
+                  </Link>
                 </div>
               </div>
             </div>
@@ -207,6 +215,13 @@ const OrderComponent = ({ code }) => {
                 <p className="text-gray-700 mb-2">
                   <strong>Saison :</strong> {order.abonnementDetails.season}
                 </p>
+                <Link
+                  href={`${order.subscriptionDetails.downloadUrl}`}
+                  className="bg-blue-500 text-white rounded-md py-2 px-4 hover:underline"
+                  target="_blank"
+                >
+                  Voir l&apos;abonnement
+                </Link>
               </div>
             </div>
           </div>

@@ -102,7 +102,7 @@ const TicketsContent = () => {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Rechercher un match..."
+          placeholder="Rechercher un billet..."
           className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           onChange={handleSearch}
         />

@@ -22,6 +22,7 @@ const AbonementsContent = () => {
       setError("");
       const response = await getAllSubscriptions();
       if (response.success) {
+        console.log("Fetched abonements:", response.data);
         setAbonements(response.data ?? []);
         setAbonementsList(response.data ?? []); // Assuming you want to keep this state for some reason
       } else {
@@ -125,7 +126,7 @@ const AbonementsContent = () => {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Rechercher un match..."
+          placeholder="Rechercher un abonnement..."
           className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           onChange={handleSearch}
         />
@@ -173,6 +174,13 @@ const AbonementsContent = () => {
                       className="bg-blue-600  text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2"
                     >
                       Plus de détails
+                    </Link>
+                    <Link
+                      href={abonement?.downloadUrl || "#"}
+                      className="bg-blue-600  text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2"
+                      target="_blank"
+                    >
+                      Voir l&apos;abonnement
                     </Link>
                     {/* <button
                       className="text-red-600 hover:text-red-800 cursor-pointer"
