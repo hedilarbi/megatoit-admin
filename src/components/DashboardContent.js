@@ -1,23 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Spinner from "./spinner/Spinner";
-
 import { WarningIcon } from "@/assets/svgs";
-
 import Image from "next/image";
 import Link from "next/link";
-
 import { IoEyeSharp } from "react-icons/io5";
-
 import { getOrdersWithDetails } from "@/services/order.service";
+
 const DashboardContent = () => {
-  const [orders, setOrders] = useState([]);
-  const [ordersList, setOrdersList] = useState([]); // Unused state, can be removed if not needed
+  const [ordersAll, setOrdersAll] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [type, setType] = useState("tous");
+  // Filtres
+  const [searchTerm, setSearchTerm] = useState("");
+  const [type, setType] = useState("tous"); // "tous" | "matchs" | "abonnements"
+  const [fromDate, setFromDate] = useState(""); // yyyy-mm-dd
+  const [toDate, setToDate] = useState(""); // yyyy-mm-dd
 
   const fetchData = async () => {
     try {
@@ -25,81 +25,73 @@ const DashboardContent = () => {
       setError(null);
       const response = await getOrdersWithDetails();
       if (response) {
-        setOrders(response);
-        setOrdersList(response); // Assuming you want to keep this state for some reason
+        setOrdersAll(response);
       } else {
-        console.error("Failed to fetch matchs");
-        setError(response.error ?? null);
+        setError("Impossible de récupérer les commandes.");
       }
-    } catch (error) {
-      setError("Une erreur s'est produite lors de la récupération des matchs.");
-      console.error("Error fetching matchs:", error);
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+      setError(
+        "Une erreur s'est produite lors de la récupération des commandes."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (event) => {
-    const searchTerm = event.target.value.toLowerCase();
-    if (type === "tous") {
-      const filteredOrders = ordersList.filter(
-        (order) =>
-          order.code.toLowerCase().includes(searchTerm) ||
-          order.userDetails.userName.toLowerCase().includes(searchTerm)
-      );
-      setOrders(filteredOrders);
-    }
-    if (type === "matchs") {
-      const filteredOrders = ordersList.filter(
-        (order) =>
-          (order.code.toLowerCase().includes(searchTerm) ||
-            order.userDetails.userName.toLowerCase().includes(searchTerm)) &&
-          order.matchId
-      );
-      setOrders(filteredOrders);
-    }
-    if (type === "abonnements") {
-      const filteredOrders = ordersList.filter(
-        (order) =>
-          order.code.toLowerCase().includes(searchTerm) ||
-          (order.userDetails.userName.toLowerCase().includes(searchTerm) &&
-            !order.matchId)
-      );
-      setOrders(filteredOrders);
-    }
-  };
   useEffect(() => {
-    fetchData(); // Fetch data when the component mounts
+    fetchData();
   }, []);
+
+  const tsToDate = (ts) =>
+    new Date(ts.seconds * 1000 + ts.nanoseconds / 1_000_000);
+
+  // Combine TOUTES les conditions (recherche + type + dates)
+  const filteredOrders = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    const from = fromDate ? new Date(fromDate) : null;
+    const to = toDate ? new Date(`${toDate}T23:59:59.999`) : null;
+
+    return ordersAll.filter((o) => {
+      const code = (o.code || "").toLowerCase();
+      const userName = (o.userDetails?.userName || "").toLowerCase();
+
+      const matchesSearch =
+        q === "" ? true : code.includes(q) || userName.includes(q);
+
+      const isMatch = !!o.matchId;
+      const matchesType =
+        type === "tous" ? true : type === "matchs" ? isMatch : !isMatch;
+
+      const d = tsToDate(o.createdAt);
+      const matchesDate = (!from || d >= from) && (!to || d <= to);
+
+      return matchesSearch && matchesType && matchesDate;
+    });
+  }, [ordersAll, searchTerm, type, fromDate, toDate]);
+
   const formatDate = (timestamp) => {
-    const milliseconds =
-      timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
-
-    const date = new Date(milliseconds);
-
+    const date = tsToDate(timestamp);
     const options = {
-      weekday: "long", // "Lundi"
-      day: "numeric", // "24"
-      month: "long", // "mars"
-      year: "numeric", // "2025"
-      hour: "2-digit", // "13"
-      minute: "2-digit", // "00"
-      hour12: false, // Use 24-hour format
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     };
-
-    const formattedDate = date
-      .toLocaleDateString("fr-FR", options)
-      .replace(",", " à"); // Replace comma with " à"
-    return formattedDate;
+    return date.toLocaleDateString("fr-FR", options).replace(",", " à");
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-100px)] ">
+      <div className="flex items-center justify-center h-[calc(100vh-100px)]">
         <Spinner />
       </div>
     );
   }
+
   if (error) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-80px)]">
@@ -115,7 +107,7 @@ const DashboardContent = () => {
             Oups, quelque chose s&apos;est mal passé
           </p>
           <button
-            onClick={() => fetchData()}
+            onClick={fetchData}
             className="mt-4 px-4 py-2 bg-[#DD636E] text-white rounded-lg cursor-pointer"
           >
             Réessayer
@@ -124,40 +116,70 @@ const DashboardContent = () => {
       </div>
     );
   }
-  const handleTypeChange = (newType) => {
-    setType(newType);
-    if (newType === "tous") {
-      setOrders(ordersList);
-    } else {
-      const filteredOrders = ordersList.filter(
-        (order) =>
-          (newType === "matchs" && order.matchId) ||
-          (newType === "abonnements" && !order.matchId)
-      );
-      setOrders(filteredOrders);
-    }
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setType("tous");
+    setFromDate("");
+    setToDate("");
   };
+
   return (
     <>
+      {/* Recherche + Type */}
       <div className="flex items-center gap-4 mb-4">
         <input
           type="text"
-          placeholder="Rechercher un match..."
+          placeholder="Rechercher par code ou utilisateur..."
           className="flex-1 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          onChange={handleSearch}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
+
         <select
           value={type}
-          onChange={(e) => handleTypeChange(e.target.value)}
+          onChange={(e) => setType(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="tous">Tous</option>
-          <option value="matchs">Matchs</option>
+          <option value="matchs">Billets</option>
           <option value="abonnements">Abonnements</option>
         </select>
       </div>
 
-      <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
+      {/* Dates + Reset */}
+      <div className="flex items-center gap-4 mb-4">
+        <div className="flex gap-2 items-center">
+          <label htmlFor="fromDate">Date de début</label>
+          <input
+            id="fromDate"
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="flex gap-2 items-center">
+          <label htmlFor="toDate">Date de fin</label>
+          <input
+            id="toDate"
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <button
+          onClick={resetFilters}
+          className="px-4 py-2 bg-gray-300 text-black rounded-lg cursor-pointer"
+        >
+          Réinitialiser
+        </button>
+      </div>
+
+      <div className="bg-white shadow-lg rounded-lg h-[calc(100vh-220px)] overflow-scroll">
         <table className="w-full text-left border-collapse">
           <thead className="bg-blue-600 text-white">
             <tr>
@@ -168,27 +190,26 @@ const DashboardContent = () => {
                 Date de création
               </th>
               <th className="px-6 py-3 text-sm font-medium">Total</th>
-
               <th className="px-6 py-3 text-sm font-medium">Actions</th>
             </tr>
           </thead>
+
           <tbody className="divide-y divide-gray-200">
-            {/* Exemple de données statiques */}
-            {orders.length === 0 ? (
+            {filteredOrders.length === 0 ? (
               <tr className="text-center">
-                <td colSpan={4} className="px-6 py-4 text-gray-500">
-                  Aucune commande trouvé
+                <td colSpan={6} className="px-6 py-4 text-gray-500">
+                  Aucune commande trouvée
                 </td>
               </tr>
             ) : (
-              orders.map((order) => (
+              filteredOrders.map((order) => (
                 <tr key={order.code} className="hover:bg-gray-100 transition">
                   <td className="px-6 py-4 text-gray-700">{order.code}</td>
                   <td className="px-6 py-4 text-gray-700">
                     {order.matchId ? "Billets" : "Abonnement"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {order.userDetails?.userName}
+                    {order.userDetails?.userName || "-"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {formatDate(order.createdAt)}
@@ -196,8 +217,7 @@ const DashboardContent = () => {
                   <td className="px-6 py-4 text-gray-700">
                     $ {(order.amount / 100).toFixed(2)}
                   </td>
-
-                  <td className="px-6 py-4 flex space-x-5 items-center ">
+                  <td className="px-6 py-4 flex space-x-5 items-center">
                     <Link
                       href={`/tableau-de-bord/commandes/${order.code}`}
                       className="text-green-600 hover:text-green-800 cursor-pointer"

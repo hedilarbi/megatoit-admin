@@ -8,7 +8,7 @@ const page = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex  items-center mb-6 space-x-4">
           <Link
-            href="/matchs"
+            href="/code-promotion"
             className="bg-blue-600 text-white rounded-full p-3 flex justify-center items-center"
           >
             <FaArrowLeftLong className="" />

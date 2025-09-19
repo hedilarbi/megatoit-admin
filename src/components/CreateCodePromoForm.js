@@ -14,6 +14,8 @@ const CreateCodePromoForm = () => {
   const [creating, setCreating] = useState(false);
   const [usagePerUser, setUsagePerUser] = useState(1);
   const [typeOfUsage, setTypeOfUsage] = useState("limited");
+  const [typeOfTotalUsage, setTypeOfTotalUsage] = useState("limited");
+  const [totalUsage, setTotalUsage] = useState(1);
 
   const handleCreate = async () => {
     if (!code) {
@@ -53,6 +55,7 @@ const CreateCodePromoForm = () => {
         percent: type === "percent" ? value : null,
         startDate: new Date().toISOString(),
         usagePerUser: typeOfUsage === "limited" ? usagePerUser : null,
+        totalUsage: typeOfTotalUsage === "limited" ? totalUsage : null,
         endDate: new Date(endDate).toISOString(),
       });
 
@@ -63,6 +66,8 @@ const CreateCodePromoForm = () => {
         setEndDate("");
         setUsagePerUser(1);
         setTypeOfUsage("limited");
+        setTypeOfTotalUsage("limited");
+        setTotalUsage(1);
         setError(null);
         toast.success("Code promotionnel créé avec succès !");
       } else {
@@ -170,6 +175,46 @@ const CreateCodePromoForm = () => {
                 id="limitedUsage"
                 value={usagePerUser}
                 onChange={(e) => setUsagePerUser(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            )}
+          </div>
+          <div className="">
+            <label
+              htmlFor="usagePerUser"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Usage Total
+            </label>
+            <div className="flex items-center gap-4 mb-2">
+              <button
+                className={`${
+                  typeOfTotalUsage === "limited"
+                    ? "border-2 border-blue-500 bg-blue-500/40 "
+                    : "bg-white border-2 border-gray-500"
+                } px-4 py-2 rounded-md`}
+                onClick={() => setTypeOfTotalUsage("limited")}
+              >
+                <span>limité</span>
+              </button>
+
+              <button
+                className={`${
+                  typeOfTotalUsage === "unlimited"
+                    ? "border-2 border-blue-500 bg-blue-500/40 "
+                    : "bg-white border-2 border-gray-500"
+                } px-4 py-2 rounded-md`}
+                onClick={() => setTypeOfTotalUsage("unlimited")}
+              >
+                <span>illimité</span>
+              </button>
+            </div>
+            {typeOfTotalUsage === "limited" && (
+              <input
+                type="number"
+                id="limitedTotalUsage"
+                value={totalUsage}
+                onChange={(e) => setTotalUsage(e.target.value)}
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             )}

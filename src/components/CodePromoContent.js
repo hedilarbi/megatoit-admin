@@ -120,8 +120,15 @@ const CodePromoContent = () => {
               <th className="px-6 py-3 text-sm font-medium">Type</th>
               <th className="px-6 py-3 text-sm font-medium">valeur</th>
               <th className="px-6 py-3 text-sm font-medium">
-                Nombre d&apos;utilisations
+                Limite d&apos;utilisations par client
               </th>
+              <th className="px-6 py-3 text-sm font-medium">
+                Limite d&apos;utilisations totales
+              </th>
+              <th className="px-6 py-3 text-sm font-medium">
+                Nombre d&apos;utilisations totales
+              </th>
+
               <th className="px-6 py-3 text-sm font-medium">
                 Date d&apos;expiration
               </th>
@@ -155,6 +162,12 @@ const CodePromoContent = () => {
                     {promoCode.usagePerUser
                       ? promoCode.usagePerUser
                       : "Illimité"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">
+                    {promoCode.totalUsage ? promoCode.totalUsage : "Illimité"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">
+                    {promoCode.used ? promoCode.used : "0"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {new Date(promoCode.endDate).toLocaleDateString("fr-FR", {
