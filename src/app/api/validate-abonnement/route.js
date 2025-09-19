@@ -86,6 +86,18 @@ export async function POST(request) {
       matchDate.getMonth() !== today.getMonth() ||
       matchDate.getDate() !== today.getDate()
     ) {
+      console.log(
+        "matchDate:",
+        matchDate.getFullYear(),
+        matchDate.getMonth(),
+        matchDate.getDate()
+      );
+      console.log(
+        "today:",
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+      );
       return NextResponse.json(
         { error: "Le match n'a pas lieu aujourd'hui" },
         { status: 400 }
