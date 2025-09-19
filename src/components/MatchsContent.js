@@ -159,6 +159,7 @@ const MatchsContent = () => {
               <th className="px-6 py-3 text-sm font-medium">
                 Nombre de sièges disponibles
               </th>
+              <th className="px-6 py-3 text-sm font-medium">Billets vendus</th>
 
               <th className="px-6 py-3 text-sm font-medium">Billets utilisé</th>
               <th className="px-6 py-3 text-sm font-medium">Actions</th>
@@ -193,6 +194,9 @@ const MatchsContent = () => {
 
                   <td className="px-6 py-4 text-gray-700">
                     {match.availableSeats}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">
+                    {match.totalSeats - (match.availableSeats || 0)}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {match.ticketsUsed || 0}
