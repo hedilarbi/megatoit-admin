@@ -63,7 +63,7 @@ export async function POST(request) {
 
     if (ticket.isUsed) {
       return NextResponse.json(
-        { error: "Ticket déjà utilisé" },
+        { error: "Billet déjà utilisé" },
         { status: 400 }
       );
     }
