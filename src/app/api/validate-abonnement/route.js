@@ -76,33 +76,33 @@ export async function POST(request) {
 
     const match = matchDoc.data();
 
-    const matchDate = match.date.toDate
-      ? match.date.toDate()
-      : new Date(match.date);
+    // const matchDate = match.date.toDate
+    //   ? match.date.toDate()
+    //   : new Date(match.date);
 
-    const today = new Date();
-    if (
-      matchDate.getFullYear() !== today.getFullYear() ||
-      matchDate.getMonth() !== today.getMonth() ||
-      matchDate.getDate() !== today.getDate()
-    ) {
-      console.log(
-        "matchDate:",
-        matchDate.getFullYear(),
-        matchDate.getMonth(),
-        matchDate.getDate()
-      );
-      console.log(
-        "today:",
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate()
-      );
-      return NextResponse.json(
-        { error: "Le match n'a pas lieu aujourd'hui" },
-        { status: 400 }
-      );
-    }
+    // const today = new Date();
+    // if (
+    //   matchDate.getFullYear() !== today.getFullYear() ||
+    //   matchDate.getMonth() !== today.getMonth() ||
+    //   matchDate.getDate() !== today.getDate()
+    // ) {
+    //   console.log(
+    //     "matchDate:",
+    //     matchDate.getFullYear(),
+    //     matchDate.getMonth(),
+    //     matchDate.getDate()
+    //   );
+    //   console.log(
+    //     "today:",
+    //     today.getFullYear(),
+    //     today.getMonth(),
+    //     today.getDate()
+    //   );
+    //   return NextResponse.json(
+    //     { error: "Le match n'a pas lieu aujourd'hui" },
+    //     { status: 400 }
+    //   );
+    // }
     if (
       subscription.matchs &&
       subscription.matchs.some((m) => m.matchId === matchId)
