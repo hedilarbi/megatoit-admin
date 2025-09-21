@@ -174,17 +174,35 @@ const DashboardContent = () => {
       </div>
 
       <div className="flex items-center mb-4">
-        <p className=" text-gray-600">
-          {filteredOrders.length} commande
-          {filteredOrders.length > 1 ? "s" : ""} trouvée
-          {filteredOrders.length > 1 ? "s" : ""}
-        </p>
-        <span className="ml-6 text-gray-700 font-semibold">
-          Total: $
-          {(
-            filteredOrders.reduce((sum, o) => sum + (o.amount || 0), 0) / 100
-          ).toFixed(2)}
-        </span>
+        <div className="flex items-center">
+          <p className=" text-gray-600">
+            {filteredOrders.length} commande
+            {filteredOrders.length > 1 ? "s" : ""} trouvée
+            {filteredOrders.length > 1 ? "s" : ""}
+          </p>
+          <span className="ml-6 text-gray-700 font-semibold">
+            Total: $
+            {(
+              filteredOrders.reduce((sum, o) => sum + (o.amount || 0), 0) / 100
+            ).toFixed(2)}
+          </span>
+        </div>
+        <div className="flex items-center">
+          <div className="ml-6 text-gray-700 font-semibold">
+            Nombre de billets:
+            {filteredOrders.reduce(
+              (sum, o) =>
+                o.matchId
+                  ? sum + (Array.isArray(o.tickets) ? o.tickets.length : 1)
+                  : sum,
+              0
+            )}
+          </div>
+          <div className="ml-6 text-gray-700 font-semibold">
+            Nombre d&apos;abonnements:
+            {filteredOrders.reduce((sum, o) => sum + (o.matchId ? 0 : 1), 0)}
+          </div>
+        </div>
       </div>
 
       <div className="bg-white shadow-lg rounded-lg h-[calc(100vh-100px)] overflow-scroll">
@@ -194,6 +212,9 @@ const DashboardContent = () => {
               <th className="px-6 py-3 text-sm font-medium">Code</th>
               <th className="px-6 py-3 text-sm font-medium">Type</th>
               <th className="px-6 py-3 text-sm font-medium">Utilisateur</th>
+              <th className="px-6 py-3 text-sm font-medium">
+                Nombre de billets/abonnements
+              </th>
               <th className="px-6 py-3 text-sm font-medium">
                 Date de création
               </th>
@@ -219,6 +240,9 @@ const DashboardContent = () => {
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {order.userDetails?.userName || "-"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">
+                    {order.matchId ? order.tickets.length : "1"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {formatDate(order.createdAt)}
