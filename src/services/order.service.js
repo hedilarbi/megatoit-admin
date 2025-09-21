@@ -1,5 +1,5 @@
+import { db } from "@/lib/firebase";
 import {
-  getFirestore,
   collection,
   getDocs,
   doc,
@@ -12,7 +12,6 @@ import {
 
 const IN_LIMIT = 30;
 
-const db = getFirestore();
 async function fetchByIds(colName, ids) {
   if (!ids || ids.length === 0) return new Map();
   const colRef = collection(db, colName);
