@@ -25,7 +25,6 @@ const DashboardContent = () => {
       setError(null);
       const response = await getOrdersWithDetails();
       if (response) {
-        console.log("Orders fetched:", response);
         setOrdersAll(response);
       } else {
         setError("Impossible de récupérer les commandes.");
@@ -182,7 +181,9 @@ const DashboardContent = () => {
         </p>
         <span className="ml-6 text-gray-700 font-semibold">
           Total: $
-          {filteredOrders.reduce((sum, o) => sum + (o.amount || 0), 0) / 100}
+          {(
+            filteredOrders.reduce((sum, o) => sum + (o.amount || 0), 0) / 100
+          ).toFixed(2)}
         </span>
       </div>
 

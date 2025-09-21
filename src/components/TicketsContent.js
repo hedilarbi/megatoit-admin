@@ -193,13 +193,6 @@ const TicketsContent = () => {
           {filteredTickets.length > 1 ? "s" : ""} trouvé
           {filteredTickets.length > 1 ? "s" : ""}
         </p>
-        <span className="ml-6 text-gray-700 font-semibold">
-          Total: $
-          {filteredTickets.reduce(
-            (sum, o) => sum + (o.orderDetails.amount || 0),
-            0
-          ) / 100}
-        </span>
       </div>
 
       <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
@@ -212,7 +205,6 @@ const TicketsContent = () => {
                 Date d&apos;achat
               </th>
 
-              <th className="px-6 py-3 text-sm font-medium">Payé</th>
               <th className="px-6 py-3 text-sm font-medium">Date du match</th>
               <th className="px-6 py-3 text-sm font-medium">Etat du billet</th>
 
@@ -243,15 +235,7 @@ const TicketsContent = () => {
                   <td className="px-6 py-4 text-gray-700">
                     {formatDate(ticket.createdAt)}
                   </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {(ticket.orderDetails.amount / 100).toLocaleString(
-                      "fr-FR",
-                      {
-                        style: "currency",
-                        currency: "CAD",
-                      }
-                    )}
-                  </td>
+
                   <td className="px-6 py-4 text-gray-700">
                     {formatDate(ticket.matchDetails?.date) || "N/A"}
                   </td>

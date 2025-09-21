@@ -159,13 +159,6 @@ const AbonementsContent = () => {
           {filteredAbonnements.length > 1 ? "s" : ""} trouvé
           {filteredAbonnements.length > 1 ? "s" : ""}
         </p>
-        <span className="ml-6 text-gray-700 font-semibold">
-          Total: $
-          {filteredAbonnements.reduce(
-            (sum, o) => sum + (o.order.amount || 0),
-            0
-          ) / 100}
-        </span>
       </div>
 
       <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
@@ -179,7 +172,6 @@ const AbonementsContent = () => {
               <th className="px-6 py-3 text-sm font-medium">
                 Date d&apos;achat
               </th>
-              <th className="px-6 py-3 text-sm font-medium">Payé</th>
 
               <th className="px-6 py-3 text-sm font-medium">Actions</th>
             </tr>
@@ -208,9 +200,7 @@ const AbonementsContent = () => {
                   <td className="px-6 py-4 text-gray-700">
                     {formatDate(abonement?.createdAt)}
                   </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    ${(abonement?.order.amount / 100).toFixed(2)}
-                  </td>
+
                   <td className="px-6 py-4 flex space-x-5 items-center ">
                     <Link
                       href={`/abonnements/${abonement?.code}`}
