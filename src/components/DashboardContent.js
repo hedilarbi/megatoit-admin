@@ -25,6 +25,7 @@ const DashboardContent = () => {
       setError(null);
       const response = await getOrdersWithDetails();
       if (response) {
+        console.log("Orders fetched:", response);
         setOrdersAll(response);
       } else {
         setError("Impossible de récupérer les commandes.");
