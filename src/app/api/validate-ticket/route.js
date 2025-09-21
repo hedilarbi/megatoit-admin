@@ -61,6 +61,13 @@ export async function POST(request) {
       return NextResponse.json({ error: "Billet non trouvé" }, { status: 404 });
     }
 
+    if (ticket.matchId !== matchId) {
+      return NextResponse.json(
+        { error: "Le billet ne correspond pas au match d'aujourd'hui" },
+        { status: 400 }
+      );
+    }
+
     if (ticket.isUsed) {
       return NextResponse.json(
         { error: "Billet déjà utilisé" },

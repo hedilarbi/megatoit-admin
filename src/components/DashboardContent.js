@@ -72,16 +72,10 @@ const DashboardContent = () => {
 
   const formatDate = (timestamp) => {
     const date = tsToDate(timestamp);
-    const options = {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    };
-    return date.toLocaleDateString("fr-FR", options).replace(",", " à");
+    const pad = (n) => n.toString().padStart(2, "0");
+    return `${pad(date.getDate())}/${pad(
+      date.getMonth() + 1
+    )}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
   if (loading) {
@@ -179,7 +173,19 @@ const DashboardContent = () => {
         </button>
       </div>
 
-      <div className="bg-white shadow-lg rounded-lg h-[calc(100vh-220px)] overflow-scroll">
+      <div className="flex items-center mb-4">
+        <p className=" text-gray-600">
+          {filteredOrders.length} commande
+          {filteredOrders.length > 1 ? "s" : ""} trouvée
+          {filteredOrders.length > 1 ? "s" : ""}
+        </p>
+        <span className="ml-6 text-gray-700 font-semibold">
+          Total: $
+          {filteredOrders.reduce((sum, o) => sum + (o.amount || 0), 0) / 100}
+        </span>
+      </div>
+
+      <div className="bg-white shadow-lg rounded-lg h-[calc(100vh-100px)] overflow-scroll">
         <table className="w-full text-left border-collapse">
           <thead className="bg-blue-600 text-white">
             <tr>
@@ -189,6 +195,7 @@ const DashboardContent = () => {
               <th className="px-6 py-3 text-sm font-medium">
                 Date de création
               </th>
+              <th className="px-6 py-3 text-sm font-medium">Promotion</th>
               <th className="px-6 py-3 text-sm font-medium">Total</th>
               <th className="px-6 py-3 text-sm font-medium">Actions</th>
             </tr>
@@ -213,6 +220,13 @@ const DashboardContent = () => {
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {formatDate(order.createdAt)}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">
+                    {order.promoCodeId
+                      ? order.promotion.type === "percent"
+                        ? `${order.promotion.percent}%`
+                        : `$${order.promotion.amount}`
+                      : "-"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     $ {(order.amount / 100).toFixed(2)}

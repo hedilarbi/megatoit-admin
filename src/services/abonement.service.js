@@ -10,8 +10,9 @@ import {
   getDocs,
   query,
   deleteDoc,
+  documentId,
 } from "firebase/firestore";
-
+const IN_LIMIT = 30;
 export const addAbonement = async (abonement) => {
   try {
     const abonementsCollection = collection(db, "abonements");
@@ -123,31 +124,67 @@ export const deleteAbonnement = async (id) => {
   }
 };
 
+async function fetchByIds(colName, ids) {
+  if (!ids || ids.length === 0) return new Map();
+  const colRef = collection(db, colName);
+
+  // Chunk to respect Firestore's "in" limit
+  const chunks = [];
+  for (let i = 0; i < ids.length; i += IN_LIMIT) {
+    chunks.push(ids.slice(i, i + IN_LIMIT));
+  }
+
+  const maps = await Promise.all(
+    chunks.map(async (chunk) => {
+      const q = query(colRef, where(documentId(), "in", chunk));
+      const snap = await getDocs(q);
+      const m = new Map();
+      snap.forEach((d) => m.set(d.id, { id: d.id, ...d.data() }));
+      return m;
+    })
+  );
+
+  // Merge chunk maps
+  return maps.reduce((acc, m) => {
+    m.forEach((v, k) => acc.set(k, v));
+    return acc;
+  }, new Map());
+}
+
 export const getAllSubscriptions = async () => {
   try {
-    const subscriptionsCollection = collection(db, "subscriptions");
-    const subscriptionsQuery = query(
-      subscriptionsCollection,
-      orderBy("createdAt", "desc")
+    // 1) Load subscriptions once
+    const subsSnap = await getDocs(
+      query(collection(db, "subscriptions"), orderBy("createdAt", "desc"))
     );
-    const subscriptionsSnapshot = await getDocs(subscriptionsQuery);
+    const subscriptions = subsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-    // Fetch all abonements once and map by id for quick lookup
-    const abonementsSnapshot = await getDocs(collection(db, "abonements"));
-    const abonementsMap = {};
-    abonementsSnapshot.forEach((doc) => {
-      abonementsMap[doc.id] = { id: doc.id, ...doc.data() };
-    });
+    // 2) Collect unique foreign keys (IDs)
+    const userIds = new Set();
+    const orderIds = new Set();
+    const abonnementIds = new Set();
 
-    const subscriptions = subscriptionsSnapshot.docs.map((doc) => {
-      const data = doc.data();
-      const abonnementId = data.abonnementId;
-      return {
-        id: doc.id,
-        ...data,
-        abonnement: abonnementId ? abonementsMap[abonnementId] || null : null,
-      };
-    });
+    for (const s of subscriptions) {
+      if (s.userId) userIds.add(String(s.userId));
+      if (s.orderId) orderIds.add(String(s.orderId));
+      if (s.abonnementId) abonnementIds.add(String(s.abonnementId));
+    }
+
+    // 3) Batch fetch related docs in parallel
+    const [usersById, ordersById, abonnementsById] = await Promise.all([
+      fetchByIds("users", Array.from(userIds)),
+      fetchByIds("orders", Array.from(orderIds)),
+      fetchByIds("abonements", Array.from(abonnementIds)),
+    ]);
+
+    // 4) Attach without extra reads
+    for (const s of subscriptions) {
+      s.user = s.userId ? usersById.get(String(s.userId)) || null : null;
+      s.order = s.orderId ? ordersById.get(String(s.orderId)) || null : null;
+      s.abonnement = s.abonnementId
+        ? abonnementsById.get(String(s.abonnementId)) || null
+        : null;
+    }
 
     return { success: true, data: subscriptions };
   } catch (error) {

@@ -6,29 +6,67 @@ import {
   getDoc,
   query,
   orderBy,
+  documentId,
+  where,
 } from "firebase/firestore";
 
+const IN_LIMIT = 30;
+
 const db = getFirestore();
+async function fetchByIds(colName, ids) {
+  if (!ids || ids.length === 0) return new Map();
+  const colRef = collection(db, colName);
+
+  // Chunk ids to respect Firestore's "in" operator limit
+  const chunks = [];
+  for (let i = 0; i < ids.length; i += IN_LIMIT) {
+    chunks.push(ids.slice(i, i + IN_LIMIT));
+  }
+
+  const maps = await Promise.all(
+    chunks.map(async (chunk) => {
+      const q = query(colRef, where(documentId(), "in", chunk));
+      const snap = await getDocs(q);
+      const m = new Map();
+      snap.forEach((d) => m.set(d.id, { id: d.id, ...d.data() }));
+      return m;
+    })
+  );
+
+  // Merge chunk maps
+  return maps.reduce((acc, m) => {
+    m.forEach((v, k) => acc.set(k, v));
+    return acc;
+  }, new Map());
+}
 
 export const getOrdersWithDetails = async () => {
-  const ordersCollection = collection(db, "orders");
-  const ordersQuery = query(ordersCollection, orderBy("createdAt", "desc"));
-  const ordersSnapshot = await getDocs(ordersQuery);
-  const orders = [];
+  // 1) Load orders (once)
+  const ordersSnap = await getDocs(
+    query(collection(db, "orders"), orderBy("createdAt", "desc"))
+  );
+  const orders = ordersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-  for (const orderDoc of ordersSnapshot.docs) {
-    const orderData = orderDoc.data();
+  // 2) Collect unique IDs to populate
+  const userIds = new Set();
+  const promoIds = new Set();
 
-    // Populate user details if userId exists
-    if (orderData.userId) {
-      const userDocRef = doc(db, "users", orderData.userId);
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        orderData.userDetails = userDoc.data();
-      }
-    }
+  for (const o of orders) {
+    if (o.userId) userIds.add(String(o.userId));
+    if (o.promoCodeId) promoIds.add(String(o.promoCodeId));
+  }
 
-    orders.push(orderData);
+  // 3) Batch-fetch related docs in parallel
+  const [usersById, promosById] = await Promise.all([
+    fetchByIds("users", Array.from(userIds)),
+    fetchByIds("promoCodes", Array.from(promoIds)),
+  ]);
+
+  // 4) Attach without extra reads
+  for (const o of orders) {
+    if (o.userId) o.userDetails = usersById.get(String(o.userId)) || null;
+    if (o.promoCodeId)
+      o.promotion = promosById.get(String(o.promoCodeId)) || null;
   }
 
   return orders;

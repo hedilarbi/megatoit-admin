@@ -10,7 +10,9 @@ import {
   query,
   deleteDoc,
   orderBy,
+  documentId,
 } from "firebase/firestore";
+const IN_LIMIT = 30;
 
 export const addMatch = async (match) => {
   try {
@@ -149,15 +151,65 @@ export const getTeams = async () => {
   }
 };
 
+async function fetchByIds(colName, ids) {
+  if (!ids || ids.length === 0) return new Map();
+  const colRef = collection(db, colName);
+
+  // chunk ids to respect Firestore "in" limit
+  const chunks = [];
+  for (let i = 0; i < ids.length; i += IN_LIMIT) {
+    chunks.push(ids.slice(i, i + IN_LIMIT));
+  }
+
+  const maps = await Promise.all(
+    chunks.map(async (chunk) => {
+      const q = query(colRef, where(documentId(), "in", chunk));
+      const snap = await getDocs(q);
+      const m = new Map();
+      snap.forEach((d) => m.set(d.id, { id: d.id, ...d.data() }));
+      return m;
+    })
+  );
+
+  // merge maps
+  return maps.reduce((acc, m) => {
+    m.forEach((v, k) => acc.set(k, v));
+    return acc;
+  }, new Map());
+}
+
 export const getAllTickets = async () => {
   try {
-    const ticketsCollection = collection(db, "tickets");
-    const ticketsQuery = query(ticketsCollection, orderBy("createdAt", "desc"));
-    const ticketsSnapshot = await getDocs(ticketsQuery);
-    const tickets = ticketsSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    // 1) fetch tickets once
+    const ticketsSnap = await getDocs(
+      query(collection(db, "tickets"), orderBy("createdAt", "desc"))
+    );
+    const tickets = ticketsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    // 2) collect unique IDs
+    const userIds = new Set();
+    const matchIds = new Set();
+    const orderIds = new Set();
+
+    for (const t of tickets) {
+      if (t.userId) userIds.add(String(t.userId));
+      if (t.matchId) matchIds.add(String(t.matchId));
+      if (t.orderId) orderIds.add(String(t.orderId));
+    }
+
+    // 3) batch fetch related docs in parallel
+    const [usersById, matchsById, ordersById] = await Promise.all([
+      fetchByIds("users", Array.from(userIds)),
+      fetchByIds("matchs", Array.from(matchIds)),
+      fetchByIds("orders", Array.from(orderIds)),
+    ]);
+
+    // 4) attach (no extra reads)
+    for (const t of tickets) {
+      if (t.userId) t.userDetails = usersById.get(String(t.userId)) || null;
+      if (t.matchId) t.matchDetails = matchsById.get(String(t.matchId)) || null;
+      if (t.orderId) t.orderDetails = ordersById.get(String(t.orderId)) || null;
+    }
 
     return { success: true, data: tickets };
   } catch (error) {
