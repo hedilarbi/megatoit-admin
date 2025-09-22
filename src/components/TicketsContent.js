@@ -16,6 +16,7 @@ const TicketsContent = () => {
   const [toDate, setToDate] = useState(""); // yyyy-mm-dd
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMatch, setSelectedMatch] = useState("");
+  const [ticketStatus, setTicketStatus] = useState("tous"); // "all" | "used" | "unused"
 
   const fetchData = async () => {
     try {
@@ -46,6 +47,23 @@ const TicketsContent = () => {
     )}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
+  const formatMatchDate = (timestamp) => {
+    if (!timestamp) return "N/A";
+    const milliseconds =
+      timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
+
+    const date = new Date(milliseconds);
+
+    const str = new Intl.DateTimeFormat("fr-FR", {
+      timeZone: "Etc/GMT-1", // ← freeze at UTC
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(date);
+
+    return str;
+  };
+
   useEffect(() => {
     fetchData(); // Fetch data when the component mounts
   }, []);
@@ -70,9 +88,14 @@ const TicketsContent = () => {
       const d = tsToDate(o.createdAt);
       const matchesDate = (!from || d >= from) && (!to || d <= to);
 
-      return matchesSearch && matchesDate && matchesMatch;
+      const matchesStatus =
+        ticketStatus === "tous" ||
+        (ticketStatus === "true" && o.isUsed) ||
+        (ticketStatus === "false" && !o.isUsed);
+
+      return matchesSearch && matchesDate && matchesMatch && matchesStatus;
     });
-  }, [tickets, searchTerm, fromDate, toDate, selectedMatch]);
+  }, [tickets, searchTerm, fromDate, toDate, selectedMatch, ticketStatus]);
 
   const resetFilters = () => {
     setSearchTerm("");
@@ -148,7 +171,7 @@ const TicketsContent = () => {
                   key={match.seconds + "-" + match.nanoseconds}
                   value={match.seconds + "-" + match.nanoseconds}
                 >
-                  {formatDate(match)}
+                  {formatMatchDate(match)}
                 </option>
               ))}
             </select>
@@ -177,6 +200,20 @@ const TicketsContent = () => {
             onChange={(e) => setToDate(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+        </div>
+
+        <div className="flex gap-2 items-center">
+          <label htmlFor="type">État:</label>
+          <select
+            id="type"
+            value={ticketStatus}
+            onChange={(e) => setTicketStatus(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="tous">Tous</option>
+            <option value="true">Utilisé</option>
+            <option value="false">Disponible</option>
+          </select>
         </div>
 
         <button
@@ -237,7 +274,7 @@ const TicketsContent = () => {
                   </td>
 
                   <td className="px-6 py-4 text-gray-700">
-                    {formatDate(ticket.matchDetails?.date) || "N/A"}
+                    {formatMatchDate(ticket.matchDetails?.date) || "N/A"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {ticket.isUsed ? "Utilisé" : "Disponible"}
