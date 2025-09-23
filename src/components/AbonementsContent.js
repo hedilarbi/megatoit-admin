@@ -25,7 +25,6 @@ const AbonementsContent = () => {
       setError("");
       const response = await getAllSubscriptions();
       if (response.success) {
-        console.log("Abonements fetched:", response.data);
         setAbonements(response.data ?? []);
       } else {
         console.error("Failed to fetch abonements");
@@ -62,7 +61,7 @@ const AbonementsContent = () => {
 
     return abonements.filter((o) => {
       const code = (o.code || "").toLowerCase();
-      const userName = (o.userDetails?.userName || "").toLowerCase();
+      const userName = (o.user?.userName || "").toLowerCase();
 
       const matchesSearch =
         q === "" ? true : code.includes(q) || userName.includes(q);
