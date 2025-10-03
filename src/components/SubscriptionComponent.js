@@ -33,6 +33,7 @@ const SubscriptionComponent = ({ code }) => {
     fetchSubscription();
   }, [code]);
   const formatDate = (timestamp) => {
+    if (!timestamp) return "Date inconnue";
     const milliseconds =
       timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
 
