@@ -2,10 +2,9 @@
 import { NextResponse } from "next/server";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 
 export const runtime = "nodejs";
-// Firestore: northamerica-northeast1 (Montréal) → Vercel's closest region is Cleveland
 export const preferredRegion = ["cle1"];
 export const dynamic = "force-dynamic";
 
@@ -20,7 +19,6 @@ if (!getApps().length) {
 // ---------- Tiny caches ----------
 const TOKEN_CACHE = new Map(); // token -> { decoded, expMs }
 const TOKEN_EXP_MARGIN_MS = 60_000; // refresh a bit before expiry
-
 function getCachedDecoded(token) {
   const hit = TOKEN_CACHE.get(token);
   if (!hit) return null;
@@ -60,7 +58,7 @@ export async function POST(request) {
     let decoded = getCachedDecoded(token);
     if (!decoded) {
       try {
-        decoded = await getAuth().verifyIdToken(token); // fast path (no revocation check)
+        decoded = await getAuth().verifyIdToken(token);
       } catch {
         return json({ error: "Token invalide" }, 401);
       }
@@ -98,7 +96,7 @@ export async function POST(request) {
     const subRef = db.collection("subscriptions").doc(subscriptionId);
     const matchRef = db.collection("matchs").doc(matchId);
 
-    // --- Atomic transaction on BOTH docs (keeps your exact logic) ---
+    // --- Atomic transaction on BOTH docs ---
     await db.runTransaction(async (tx) => {
       const [subSnap, matchSnap] = await tx.getAll(subRef, matchRef);
 
@@ -114,13 +112,11 @@ export async function POST(request) {
       }
 
       const subscription = subSnap.data() || {};
-      //const match = matchSnap.data() || {};
-
       const usedList = Array.isArray(subscription.matchs)
         ? subscription.matchs
         : [];
 
-      // Already used for this match?
+      // prevent duplicate usage for the same match
       const already = usedList.some((m) => m && m.matchId === matchId);
       if (already) {
         const err = new Error("ALREADY_USED");
@@ -128,26 +124,20 @@ export async function POST(request) {
         throw err;
       }
 
-      // Append to array with server timestamp
       const updatedList = [
         ...usedList,
         {
           matchId,
           usedBy: decoded.uid,
-          usedAt: FieldValue.serverTimestamp(),
+          // NOTE: serverTimestamp() cannot be inside arrays; use a concrete Timestamp instead.
+          usedAt: Timestamp.now(),
         },
       ];
 
       tx.update(subRef, { matchs: updatedList });
 
-      // Your logic: increment subsUsed on the match in-API
-      // tx.update(matchRef, {
-      //   subsUsed: FieldValue.increment(1),
-      // });
-
-      // (Optional) If you want to assert match date==today, do it here using match.date
-      // const d = match?.date?.toDate ? match.date.toDate() : new Date(match?.date);
-      // ... compare to today's date and throw if not today
+      // If you want to track count on the match doc:
+      // tx.update(matchRef, { subsUsed: FieldValue.increment(1) });
     });
 
     return json({ success: true }, 200);
