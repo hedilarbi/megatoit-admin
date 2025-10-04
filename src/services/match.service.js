@@ -11,7 +11,9 @@ import {
   deleteDoc,
   orderBy,
   documentId,
+  getCountFromServer,
 } from "firebase/firestore";
+
 const IN_LIMIT = 30;
 
 export const addMatch = async (match) => {
@@ -41,24 +43,120 @@ export const addMatch = async (match) => {
   }
 };
 
+/** ----------------------------
+ *  Option A: tickets in TOP-LEVEL collection "tickets"
+ *  Each ticket has fields: matchId (string), isUsed (boolean)
+ *  ---------------------------- */
 export const getAllMatches = async () => {
   try {
-    const matchsCollection = collection(db, "matchs");
-
-    const q = query(matchsCollection, orderBy("date", "asc"));
-    const matchsSnapshot = await getDocs(q);
+    // 1) Load matches
+    const matchsSnapshot = await getDocs(
+      query(collection(db, "matchs"), orderBy("date", "asc"))
+    );
     const matchs = matchsSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
-    return { success: true, data: matchs };
+
+    if (matchs.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    // 2) For each match, run a COUNT aggregation in parallel
+    // NOTE: requires a composite index on (matchId, isUsed). Firestore will
+    // show you an index link the first time if it’s missing.
+    const counts = await Promise.all(
+      matchs.map((m) =>
+        getCountFromServer(
+          query(
+            collection(db, "tickets"),
+            where("matchId", "==", m.id),
+            where("isUsed", "==", true)
+          )
+        )
+      )
+    );
+
+    // 3) Merge back into matches
+    const data = matchs.map((m, i) => ({
+      ...m,
+      usedTicketsCount: counts[i].data().count,
+    }));
+
+    return { success: true, data };
   } catch (error) {
-    console.error("Erreur lors de la récupération des matchs :", error);
+    console.error(
+      "Erreur lors de la récupération des matchs + counts :",
+      error
+    );
     return {
       success: false,
-      error: "Une erreur s'est produite lors de la récupération des matchs",
+      error:
+        "Une erreur s'est produite lors de la récupération des matchs et des compteurs.",
     };
   }
+};
+
+/** ----------------------------
+ *  Option B: tickets in SUBCOLLECTIONS:
+ *  Path: /matchs/{matchId}/tickets with field isUsed (boolean)
+ *  ---------------------------- */
+// export const getMatchesWithUsedCount_Subcollections = async () => {
+//   try {
+//     // 1) Load matches
+//     const matchsSnapshot = await getDocs(
+//       query(collection(db, "matchs"), orderBy("date", "asc"))
+//     );
+//     const matchs = matchsSnapshot.docs.map((doc) => ({
+//       id: doc.id,
+//       ...doc.data(),
+//     }));
+
+//     if (matchs.length === 0) {
+//       return { success: true, data: [] };
+//     }
+
+//     // 2) For each match, count isUsed === true in its tickets subcollection
+//     const counts = await Promise.all(
+//       matchs.map((m) =>
+//         getCountFromServer(
+//           query(
+//             collection(db, "matchs", m.id, "tickets"),
+//             where("isUsed", "==", true)
+//           )
+//         )
+//       )
+//     );
+
+//     // 3) Merge back into matches
+//     const data = matchs.map((m, i) => ({
+//       ...m,
+//       usedTicketsCount: counts[i].data().count,
+//     }));
+
+//     return { success: true, data };
+//   } catch (error) {
+//     console.error(
+//       "Erreur lors de la récupération des matchs + counts :",
+//       error
+//     );
+//     return {
+//       success: false,
+//       error:
+//         "Une erreur s'est produite lors de la récupération des matchs et des compteurs.",
+//     };
+//   }
+// };
+
+/** ----------------------------
+ *  Helper: choose the right one for your schema
+ *  ---------------------------- */
+export const getAllMatchesWithUsedCounts = async ({
+  ticketsAreTopLevel = true,
+} = {}) => {
+  return ticketsAreTopLevel
+    ? getMatchesWithUsedCount_TopLevel()
+    : getMatchesWithUsedCount_Subcollections();
 };
 
 export const getMatchByUid = async (uid) => {

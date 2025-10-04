@@ -24,6 +24,7 @@ const MatchsContent = () => {
       setError(null);
       const response = await getAllMatches();
       if (response.success) {
+        console.log("Fetched matchs:", response.data);
         setMatchs(response.data ?? []);
         setMatchsList(response.data ?? []); // Assuming you want to keep this state for some reason
       } else {
@@ -152,7 +153,7 @@ const MatchsContent = () => {
             <tr>
               <th className="px-6 py-3 text-sm font-medium">Adversaire</th>
               <th className="px-6 py-3 text-sm font-medium">Date du match</th>
-              <th className="px-6 py-3 text-sm font-medium">Arène</th>
+
               <th className="px-6 py-3 text-sm font-medium">Type</th>
               <th className="px-6 py-3 text-sm font-medium">Catégorie</th>
 
@@ -182,9 +183,7 @@ const MatchsContent = () => {
                   <td className="px-6 py-4 text-gray-700">
                     {formatDate(match.date)}
                   </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {match.place || "Non spécifié"}
-                  </td>
+
                   <td className="px-6 py-4 text-gray-700">
                     {match.type || "Non spécifié"}
                   </td>
@@ -199,7 +198,7 @@ const MatchsContent = () => {
                     {match.totalSeats - (match.availableSeats || 0)}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {match.ticketsUsed || 0}
+                    {match.usedTicketsCount || 0}
                   </td>
                   <td className="px-6 py-4 flex space-x-5 items-center ">
                     <Link
