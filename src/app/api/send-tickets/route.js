@@ -1,8 +1,8 @@
 // app/api/orders/send-tickets/route.ts
 import { NextResponse } from "next/server";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
+
+import { Timestamp } from "firebase-admin/firestore";
 import nodemailer from "nodemailer";
 
 // --- Next.js route settings ---
@@ -18,31 +18,25 @@ if (!getApps().length) {
   initializeApp({ credential: cert(sa), projectId: sa.project_id });
 }
 
-// --- tiny cache for role checks (same pattern as your example) ---
-const EMP_CACHE = new Map(); // uid -> expiresAt
-const EMP_TTL_MS = 60_000;
-const hasEmployeeCache = (uid) => (EMP_CACHE.get(uid) ?? 0) > Date.now();
-const markEmployee = (uid) => EMP_CACHE.set(uid, Date.now() + EMP_TTL_MS);
-
 // --- Nodemailer transport (configure via env) ---
-function getTransport() {
-  const {
-    SMTP_HOST,
-    SMTP_PORT,
-    SMTP_USER,
-    SMTP_PASS,
-    // "true" | "false"
-  } = process.env;
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-    throw new Error("SMTP env vars missing (SMTP_HOST/PORT/USER/PASS).");
-  }
-  return nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT),
-    secure: "true",
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-  });
-}
+// function getTransport() {
+//   const {
+//     SMTP_HOST,
+//     SMTP_PORT,
+//     SMTP_USER,
+//     SMTP_PASS,
+//     // "true" | "false"
+//   } = process.env;
+//   if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
+//     throw new Error("SMTP env vars missing (SMTP_HOST/PORT/USER/PASS).");
+//   }
+//   return nodemailer.createTransport({
+//     host: SMTP_HOST,
+//     port: Number(SMTP_PORT),
+//     secure: "true",
+//     auth: { user: SMTP_USER, pass: SMTP_PASS },
+//   });
+// }
 
 // --- Utilities ---
 const fmtFRDate = (d) =>
@@ -52,8 +46,8 @@ const fmtFRDate = (d) =>
     year: "numeric",
   }).format(d);
 
-const FROM_EMAIL =
-  process.env.FROM_EMAIL || '"Mégatoit" <billets@lemegatoit.com>';
+//const FROM_EMAIL =
+process.env.FROM_EMAIL || '"Mégatoit" <billets@lemegatoit.com>';
 
 // Helper to safely read Timestamp | Date | string to Date
 function toDate(value) {
@@ -94,7 +88,7 @@ export async function POST(request) {
       );
     }
 
-    const transport = getTransport();
+    //const transport = getTransport();
     const results = [];
 
     let test = [];
@@ -136,49 +130,49 @@ export async function POST(request) {
         const createdAtFR = fmtFRDate(createdAtDate);
 
         // Build email content (FR)
-        const subject =
-          "Lien(s) de téléchargement de vos billets - Mégatoit vs Donnacona";
+        // const subject =
+        //   "Lien(s) de téléchargement de vos billets - Mégatoit vs Donnacona";
 
-        const linksHtml =
-          ticketLinks.length > 0
-            ? `<ul>${ticketLinks
-                .map((l) => `<li><a href="${l}">${l}</a></li>`)
-                .join("")}</ul>`
-            : "<p>(Aucun lien de billet trouvé pour cette commande)</p>";
+        // const linksHtml =
+        //   ticketLinks.length > 0
+        //     ? `<ul>${ticketLinks
+        //         .map((l) => `<li><a href="${l}">${l}</a></li>`)
+        //         .join("")}</ul>`
+        //     : "<p>(Aucun lien de billet trouvé pour cette commande)</p>";
 
-        const linksText =
-          ticketLinks.length > 0
-            ? ticketLinks.map((l) => `• ${l}`).join("\n")
-            : "(Aucun lien de billet trouvé pour cette commande)";
+        // const linksText =
+        //   ticketLinks.length > 0
+        //     ? ticketLinks.map((l) => `• ${l}`).join("\n")
+        //     : "(Aucun lien de billet trouvé pour cette commande)";
 
-        const html = `
-<p>Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match <strong>Mégatoit Vs Donnacona</strong> que vous avez effectué le <strong>${createdAtFR}</strong>.</p>
+        //         const html = `
+        // <p>Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match <strong>Mégatoit Vs Donnacona</strong> que vous avez effectué le <strong>${createdAtFR}</strong>.</p>
 
-<p><strong>Lien(s) du/des billet(s) :</strong></p>
-${linksHtml}
+        // <p><strong>Lien(s) du/des billet(s) :</strong></p>
+        // ${linksHtml}
 
-<p>Si vous ne les avez pas reçus, il vous est également possible de les consulter et de les télécharger directement à partir de votre profil sur notre site web :</p>
-<p><a href="https://www.lemegatoit.com" target="_blank" rel="noopener">www.lemegatoit.com</a></p>
+        // <p>Si vous ne les avez pas reçus, il vous est également possible de les consulter et de les télécharger directement à partir de votre profil sur notre site web :</p>
+        // <p><a href="https://www.lemegatoit.com" target="_blank" rel="noopener">www.lemegatoit.com</a></p>
 
-<p>Nous vous remercions de votre fidélité et avons hâte de vous accueillir lors du prochain match.</p>
+        // <p>Nous vous remercions de votre fidélité et avons hâte de vous accueillir lors du prochain match.</p>
 
-<p>Cordialement,<br/>
-L’équipe du Mégatoit de Trois-Rivières</p>
-        `.trim();
+        // <p>Cordialement,<br/>
+        // L’équipe du Mégatoit de Trois-Rivières</p>
+        //         `.trim();
 
-        const text = `
-Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match Mégatoit Vs Donnacona que vous avez effectué le ${createdAtFR}.
+        //         const text = `
+        // Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match Mégatoit Vs Donnacona que vous avez effectué le ${createdAtFR}.
 
-Lien(s) du/des billet(s):
-${linksText}
+        // Lien(s) du/des billet(s):
+        // ${linksText}
 
-Si vous ne les avez pas reçus, il vous est également possible de les consulter et de les télécharger directement à partir de votre profil sur notre site web :
-www.lemegatoit.com
+        // Si vous ne les avez pas reçus, il vous est également possible de les consulter et de les télécharger directement à partir de votre profil sur notre site web :
+        // www.lemegatoit.com
 
-Nous vous remercions de votre fidélité et avons hâte de vous accueillir lors du prochain match.
-Cordialement,
-L’équipe du Mégatoit de Trois-Rivières
-        `.trim();
+        // Nous vous remercions de votre fidélité et avons hâte de vous accueillir lors du prochain match.
+        // Cordialement,
+        // L’équipe du Mégatoit de Trois-Rivières
+        //         `.trim();
 
         // Send the email
         // await transport.sendMail({
@@ -197,7 +191,7 @@ L’équipe du Mégatoit de Trois-Rivières
         //   },
         // });
 
-        test.push({ orderId, emailTo: email, ticketLinks });
+        test.push({ orderId, emailTo: email, ticketLinks, createdAtFR });
 
         results.push({ orderId, emailTo: email, sent: true });
       } catch (err) {
