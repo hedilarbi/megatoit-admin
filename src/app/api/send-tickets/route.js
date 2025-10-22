@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 
-import { Timestamp } from "firebase-admin/firestore";
+import { Timestamp, getFirestore } from "firebase-admin/firestore";
 //import nodemailer from "nodemailer";
 
 // --- Next.js route settings ---
@@ -46,8 +46,8 @@ const fmtFRDate = (d) =>
     year: "numeric",
   }).format(d);
 
-//const FROM_EMAIL =
-process.env.FROM_EMAIL || '"Mégatoit" <billets@lemegatoit.com>';
+// const FROM_EMAIL =
+//   '"Mégatoit" <billets@lemegatoit.com>';
 
 // Helper to safely read Timestamp | Date | string to Date
 function toDate(value) {
@@ -74,7 +74,7 @@ export async function POST(request) {
 
     const startTs = Timestamp.fromDate(start);
     const endTs = Timestamp.fromDate(endExclusive);
-
+    const db = getFirestore();
     const ordersSnap = await db
       .collection("orders")
       .where("createdAt", ">=", startTs)
