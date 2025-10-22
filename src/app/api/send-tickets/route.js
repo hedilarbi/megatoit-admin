@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 
 import { Timestamp, getFirestore } from "firebase-admin/firestore";
-//import nodemailer from "nodemailer";
+import nodemailer from "nodemailer";
 
 // --- Next.js route settings ---
 export const runtime = "nodejs";
@@ -19,24 +19,24 @@ if (!getApps().length) {
 }
 
 // --- Nodemailer transport (configure via env) ---
-// function getTransport() {
-//   const {
-//     SMTP_HOST,
-//     SMTP_PORT,
-//     SMTP_USER,
-//     SMTP_PASS,
-//     // "true" | "false"
-//   } = process.env;
-//   if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-//     throw new Error("SMTP env vars missing (SMTP_HOST/PORT/USER/PASS).");
-//   }
-//   return nodemailer.createTransport({
-//     host: SMTP_HOST,
-//     port: Number(SMTP_PORT),
-//     secure: "true",
-//     auth: { user: SMTP_USER, pass: SMTP_PASS },
-//   });
-// }
+function getTransport() {
+  const {
+    SMTP_HOST,
+    SMTP_PORT,
+    SMTP_USER,
+    SMTP_PASS,
+    // "true" | "false"
+  } = process.env;
+  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
+    throw new Error("SMTP env vars missing (SMTP_HOST/PORT/USER/PASS).");
+  }
+  return nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: Number(SMTP_PORT),
+    secure: "true",
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
+  });
+}
 
 // --- Utilities ---
 const fmtFRDate = (d) =>
@@ -131,76 +131,74 @@ export async function POST(request) {
 
         console.log("TEST SEND TICKETS EMAIL:", {
           to: email,
-          // from: FROM_EMAIL,
-          // subject:
-          //   "Lien(s) de téléchargement de vos billets - Mégatoit vs Donnacona",
+          from: FROM_EMAIL,
+          subject:
+            "Lien(s) de téléchargement de vos billets - Mégatoit vs Donnacona",
           ticketLinks,
           createdAtFR,
         });
 
         // Build email content (FR)
-        // const subject =
-        //   "Lien(s) de téléchargement de vos billets - Mégatoit vs Donnacona";
+        const subject =
+          "Lien(s) de téléchargement de vos billets - Mégatoit vs Donnacona";
 
-        // const linksHtml =
-        //   ticketLinks.length > 0
-        //     ? `<ul>${ticketLinks
-        //         .map((l) => `<li><a href="${l}">${l}</a></li>`)
-        //         .join("")}</ul>`
-        //     : "<p>(Aucun lien de billet trouvé pour cette commande)</p>";
+        const linksHtml =
+          ticketLinks.length > 0
+            ? `<ul>${ticketLinks
+                .map((l) => `<li><a href="${l}">${l}</a></li>`)
+                .join("")}</ul>`
+            : "<p>(Aucun lien de billet trouvé pour cette commande)</p>";
 
-        // const linksText =
-        //   ticketLinks.length > 0
-        //     ? ticketLinks.map((l) => `• ${l}`).join("\n")
-        //     : "(Aucun lien de billet trouvé pour cette commande)";
+        const linksText =
+          ticketLinks.length > 0
+            ? ticketLinks.map((l) => `• ${l}`).join("\n")
+            : "(Aucun lien de billet trouvé pour cette commande)";
 
-        //         const html = `
-        // <p>Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match <strong>Mégatoit Vs Donnacona</strong> que vous avez effectué le <strong>${createdAtFR}</strong>.</p>
+        const html = `
+        <p>Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match <strong>Mégatoit Vs Donnacona</strong> que vous avez effectué le <strong>${createdAtFR}</strong>.</p>
 
-        // <p><strong>Lien(s) du/des billet(s) :</strong></p>
-        // ${linksHtml}
+        <p><strong>Lien(s) du/des billet(s) :</strong></p>
+         ${linksHtml}
 
-        // <p>Si vous ne les avez pas reçus, il vous est également possible de les consulter et de les télécharger directement à partir de votre profil sur notre site web :</p>
-        // <p><a href="https://www.lemegatoit.com" target="_blank" rel="noopener">www.lemegatoit.com</a></p>
+        <p>Si vous ne les avez pas reçus, il vous est également possible de les consulter et de les télécharger directement à partir de votre profil sur notre site web :</p>
+     <p><a href="https://www.lemegatoit.com" target="_blank" rel="noopener">www.lemegatoit.com</a></p>
 
-        // <p>Nous vous remercions de votre fidélité et avons hâte de vous accueillir lors du prochain match.</p>
+         <p>Nous vous remercions de votre fidélité et avons hâte de vous accueillir lors du prochain match.</p>
 
-        // <p>Cordialement,<br/>
-        // L’équipe du Mégatoit de Trois-Rivières</p>
-        //         `.trim();
+        <p>Cordialement,<br/>
+         L’équipe du Mégatoit de Trois-Rivières</p>
+                 `.trim();
 
-        //         const text = `
-        // Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match Mégatoit Vs Donnacona que vous avez effectué le ${createdAtFR}.
+        const text = `
+         Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match Mégatoit Vs Donnacona que vous avez effectué le ${createdAtFR}.
 
-        // Lien(s) du/des billet(s):
-        // ${linksText}
+         Lien(s) du/des billet(s):
+         ${linksText}
 
-        // Si vous ne les avez pas reçus, il vous est également possible de les consulter et de les télécharger directement à partir de votre profil sur notre site web :
-        // www.lemegatoit.com
+         Si vous ne les avez pas reçus, il vous est également possible de les consulter et de les télécharger directement à partir de votre profil sur notre site web :
+         www.lemegatoit.com
 
-        // Nous vous remercions de votre fidélité et avons hâte de vous accueillir lors du prochain match.
-        // Cordialement,
-        // L’équipe du Mégatoit de Trois-Rivières
-        //         `.trim();
+       Nous vous remercions de votre fidélité et avons hâte de vous accueillir lors du prochain match.
+      Cordialement,
+    L’équipe du Mégatoit de Trois-Rivières
+               `.trim();
 
         // Send the email
-        // await transport.sendMail({
-        //   from: FROM_EMAIL,
-        //   to: email,
-        //   subject,
-        //   text,
-        //   html,
-        // });
+        await transport.sendMail({
+          from: FROM_EMAIL,
+          to: email,
+          subject,
+          text,
+          html,
+        });
 
         // // Optional: mark order that email was sent
-        // await doc.ref.update({
-        //   ticketsEmail: {
-        //     sentAt: FieldValue.serverTimestamp(),
-        //     sentBy: decoded.uid,
-        //   },
-        // });
-
-        test.push({ orderId, emailTo: email, ticketLinks, createdAtFR });
+        await doc.ref.update({
+          ticketsEmail: {
+            sentAt: FieldValue.serverTimestamp(),
+            sentBy: decoded.uid,
+          },
+        });
 
         results.push({ orderId, emailTo: email, sent: true });
       } catch (err) {
@@ -211,13 +209,15 @@ export async function POST(request) {
       }
     }
 
-    // const sent = results.filter((r) => r.sent).length;
-    // const failed = results.filter((r) => !r.sent).length;
+    const sent = results.filter((r) => r.sent).length;
+    const failed = results.filter((r) => !r.sent).length;
 
     return NextResponse.json(
       {
         ok: true,
         test,
+        message: `Envoi terminé : ${sent} succès, ${failed} échecs.`,
+        results,
       },
       { status: 200 }
     );
