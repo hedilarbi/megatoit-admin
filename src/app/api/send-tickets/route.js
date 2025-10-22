@@ -46,8 +46,7 @@ const fmtFRDate = (d) =>
     year: "numeric",
   }).format(d);
 
-// const FROM_EMAIL =
-//   '"Mégatoit" <billets@lemegatoit.com>';
+const FROM_EMAIL = '"Mégatoit" <billets@lemegatoit.com>';
 
 // Helper to safely read Timestamp | Date | string to Date
 function toDate(value) {
@@ -88,7 +87,7 @@ export async function POST(request) {
       );
     }
 
-    //const transport = getTransport();
+    const transport = getTransport();
     const results = [];
 
     let test = [];
