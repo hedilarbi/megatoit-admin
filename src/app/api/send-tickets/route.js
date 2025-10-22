@@ -63,7 +63,7 @@ export async function POST(request) {
     // --- Parse body for date range (optional override) ---
     const body = (await request.json().catch(() => ({}))) ?? {};
     const startStr = body.startISO ?? "2025-10-14";
-    const endStr = body.endISO ?? "2025-10-21";
+    const endStr = body.endISO ?? "2025-10-23";
 
     // Range: [start, endInclusive] -> Firestore requires endExclusive
     // So we set endExclusive = end + 1 day at 00:00:00
