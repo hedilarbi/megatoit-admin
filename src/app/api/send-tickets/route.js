@@ -129,6 +129,15 @@ export async function POST(request) {
         const createdAtDate = toDate(order.createdAt) ?? new Date(); // fire safety
         const createdAtFR = fmtFRDate(createdAtDate);
 
+        console.log("TEST SEND TICKETS EMAIL:", {
+          to: email,
+          // from: FROM_EMAIL,
+          // subject:
+          //   "Lien(s) de téléchargement de vos billets - Mégatoit vs Donnacona",
+          ticketLinks,
+          createdAtFR,
+        });
+
         // Build email content (FR)
         // const subject =
         //   "Lien(s) de téléchargement de vos billets - Mégatoit vs Donnacona";
