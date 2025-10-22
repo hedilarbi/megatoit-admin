@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getApps, initializeApp, cert } from "firebase-admin/app";
 
 import { Timestamp } from "firebase-admin/firestore";
-import nodemailer from "nodemailer";
+//import nodemailer from "nodemailer";
 
 // --- Next.js route settings ---
 export const runtime = "nodejs";
@@ -211,8 +211,8 @@ export async function POST(request) {
       }
     }
 
-    const sent = results.filter((r) => r.sent).length;
-    const failed = results.filter((r) => !r.sent).length;
+    // const sent = results.filter((r) => r.sent).length;
+    // const failed = results.filter((r) => !r.sent).length;
 
     return NextResponse.json(
       {
