@@ -9,6 +9,39 @@ import Image from "next/image";
 
 import DeleteWarningModal from "./DeleteWarningModal";
 import toast from "react-hot-toast";
+
+const formatPromoDate = (dateLike) => {
+  if (!dateLike) return "-";
+
+  if (typeof dateLike === "string") {
+    const isoMatch = dateLike.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+
+    const frMatch = dateLike.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (frMatch) {
+      const day = frMatch[1].padStart(2, "0");
+      const month = frMatch[2].padStart(2, "0");
+      return `${day}/${month}/${frMatch[3]}`;
+    }
+  }
+
+  const dateObj =
+    dateLike?.toDate && typeof dateLike.toDate === "function"
+      ? dateLike.toDate()
+      : new Date(dateLike);
+
+  if (!Number.isNaN(dateObj?.getTime?.())) {
+    return new Intl.DateTimeFormat("fr-FR", {
+      timeZone: "America/Toronto",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(dateObj);
+  }
+
+  return String(dateLike);
+};
+
 const CodePromoContent = () => {
   const [promoCodes, setPromoCodes] = useState([]);
 
@@ -170,11 +203,7 @@ const CodePromoContent = () => {
                     {promoCode.used ? promoCode.used : "0"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {new Date(promoCode.endDate).toLocaleDateString("fr-FR", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                    })}
+                    {formatPromoDate(promoCode.endDate)}
                   </td>
 
                   <td className="px-6 py-4 flex space-x-5 items-center ">

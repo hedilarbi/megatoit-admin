@@ -3,6 +3,24 @@ import React, { useState } from "react";
 import { createPromoCode } from "@/services/match.service";
 import toast from "react-hot-toast";
 
+const QUEBEC_TZ = "America/Toronto";
+
+const getDateTokenInQuebec = (date = new Date()) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: QUEBEC_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) return "";
+  return `${year}-${month}-${day}`;
+};
+
 const CreateCodePromoForm = () => {
   const [code, setCode] = useState("");
   const [type, setType] = useState("percent");
@@ -53,10 +71,10 @@ const CreateCodePromoForm = () => {
         type,
         amount: type === "amount" ? value : null,
         percent: type === "percent" ? value : null,
-        startDate: new Date().toISOString(),
+        startDate: getDateTokenInQuebec(),
         usagePerUser: typeOfUsage === "limited" ? usagePerUser : null,
         totalUsage: typeOfTotalUsage === "limited" ? totalUsage : null,
-        endDate: new Date(endDate).toISOString(),
+        endDate,
       });
 
       if (response.success) {
