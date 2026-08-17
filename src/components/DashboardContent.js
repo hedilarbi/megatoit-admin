@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Spinner from "./spinner/Spinner";
 import { WarningIcon } from "@/assets/svgs";
 import Image from "next/image";
 import Link from "next/link";
 import { IoEyeSharp } from "react-icons/io5";
-import { getOrdersWithDetails } from "@/services/order.service";
+import { getOrdersPaginated } from "@/services/order.service";
+import Pagination from "./Pagination";
 
 const DashboardContent = () => {
-  const [ordersAll, setOrdersAll] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -19,15 +21,35 @@ const DashboardContent = () => {
   const [fromDate, setFromDate] = useState(""); // yyyy-mm-dd
   const [toDate, setToDate] = useState(""); // yyyy-mm-dd
 
-  const fetchData = async () => {
+  // Pagination Serveur
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [cursors, setCursors] = useState({ 1: null });
+
+  const fetchData = async (page = currentPage, pageSize = itemsPerPage) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getOrdersWithDetails();
-      if (response) {
-        setOrdersAll(response);
+      const cursorDoc = cursors[page] || null;
+
+      const response = await getOrdersPaginated({
+        pageSize,
+        cursorDoc,
+        searchTerm,
+        type,
+        fromDate,
+        toDate,
+      });
+
+      if (response.success) {
+        setOrders(response.orders);
+        setTotalCount(response.totalCount);
+
+        if (response.lastDoc) {
+          setCursors((prev) => ({ ...prev, [page + 1]: response.lastDoc }));
+        }
       } else {
-        setError("Impossible de récupérer les commandes.");
+        setError(response.error || "Impossible de récupérer les commandes.");
       }
     } catch (err) {
       console.error("Error fetching orders:", err);
@@ -40,37 +62,21 @@ const DashboardContent = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    setCurrentPage(1);
+    setCursors({ 1: null });
+    fetchData(1, itemsPerPage);
+  }, [searchTerm, type, fromDate, toDate, itemsPerPage]);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    fetchData(newPage, itemsPerPage);
+  };
 
   const tsToDate = (ts) =>
     new Date(ts.seconds * 1000 + ts.nanoseconds / 1_000_000);
 
-  // Combine TOUTES les conditions (recherche + type + dates)
-  const filteredOrders = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    const from = fromDate ? new Date(fromDate) : null;
-    const to = toDate ? new Date(`${toDate}T23:59:59.999`) : null;
-
-    return ordersAll.filter((o) => {
-      const code = (o.code || "").toLowerCase();
-      const userName = (o.userDetails?.userName || "").toLowerCase();
-
-      const matchesSearch =
-        q === "" ? true : code.includes(q) || userName.includes(q);
-
-      const isMatch = !!o.matchId;
-      const matchesType =
-        type === "tous" ? true : type === "matchs" ? isMatch : !isMatch;
-
-      const d = tsToDate(o.createdAt);
-      const matchesDate = (!from || d >= from) && (!to || d <= to);
-
-      return matchesSearch && matchesType && matchesDate;
-    });
-  }, [ordersAll, searchTerm, type, fromDate, toDate]);
-
   const formatDate = (timestamp) => {
+    if (!timestamp) return "N/A";
     const date = tsToDate(timestamp);
     const pad = (n) => n.toString().padStart(2, "0");
     return `${pad(date.getDate())}/${pad(
@@ -78,7 +84,7 @@ const DashboardContent = () => {
     )}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
-  if (loading) {
+  if (loading && orders.length === 0) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-100px)]">
         <Spinner />
@@ -101,7 +107,7 @@ const DashboardContent = () => {
             Oups, quelque chose s&apos;est mal passé
           </p>
           <button
-            onClick={fetchData}
+            onClick={() => fetchData(1, itemsPerPage)}
             className="mt-4 px-4 py-2 bg-[#DD636E] text-white rounded-lg cursor-pointer"
           >
             Réessayer
@@ -116,6 +122,8 @@ const DashboardContent = () => {
     setType("tous");
     setFromDate("");
     setToDate("");
+    setCurrentPage(1);
+    setCursors({ 1: null });
   };
 
   return (
@@ -176,100 +184,92 @@ const DashboardContent = () => {
       <div className="flex items-center mb-4">
         <div className="flex items-center">
           <p className=" text-gray-600">
-            {filteredOrders.length} commande
-            {filteredOrders.length > 1 ? "s" : ""} trouvée
-            {filteredOrders.length > 1 ? "s" : ""}
+            {totalCount} commande
+            {totalCount > 1 ? "s" : ""} trouvée
+            {totalCount > 1 ? "s" : ""}
           </p>
-          <span className="ml-6 text-gray-700 font-semibold">
-            Total: $
-            {(
-              filteredOrders.reduce((sum, o) => sum + (o.amount || 0), 0) / 100
-            ).toFixed(2)}
-          </span>
-        </div>
-        <div className="flex items-center">
-          <div className="ml-6 text-gray-700 font-semibold">
-            Nombre de billets:
-            {filteredOrders.reduce(
-              (sum, o) =>
-                o.matchId
-                  ? sum + (Array.isArray(o.tickets) ? o.tickets.length : 1)
-                  : sum,
-              0
-            )}
-          </div>
-          <div className="ml-6 text-gray-700 font-semibold">
-            Nombre d&apos;abonnements:
-            {filteredOrders.reduce((sum, o) => sum + (o.matchId ? 0 : 1), 0)}
-          </div>
         </div>
       </div>
 
-      <div className="bg-white shadow-lg rounded-lg h-[calc(100vh-100px)] overflow-scroll">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-brand text-black">
-            <tr>
-              <th className="px-6 py-3 text-sm font-medium">Code</th>
-              <th className="px-6 py-3 text-sm font-medium">Type</th>
-              <th className="px-6 py-3 text-sm font-medium">Utilisateur</th>
-              <th className="px-6 py-3 text-sm font-medium">
-                Nombre de billets/abonnements
-              </th>
-              <th className="px-6 py-3 text-sm font-medium">
-                Date de création
-              </th>
-              <th className="px-6 py-3 text-sm font-medium">Promotion</th>
-              <th className="px-6 py-3 text-sm font-medium">Total</th>
-              <th className="px-6 py-3 text-sm font-medium">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-gray-200">
-            {filteredOrders.length === 0 ? (
-              <tr className="text-center">
-                <td colSpan={6} className="px-6 py-4 text-gray-500">
-                  Aucune commande trouvée
-                </td>
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-brand text-black">
+              <tr>
+                <th className="px-6 py-3 text-sm font-medium">Code</th>
+                <th className="px-6 py-3 text-sm font-medium">Type</th>
+                <th className="px-6 py-3 text-sm font-medium">Utilisateur</th>
+                <th className="px-6 py-3 text-sm font-medium">
+                  Nombre de billets/abonnements
+                </th>
+                <th className="px-6 py-3 text-sm font-medium">
+                  Date de création
+                </th>
+                <th className="px-6 py-3 text-sm font-medium">Promotion</th>
+                <th className="px-6 py-3 text-sm font-medium">Total</th>
+                <th className="px-6 py-3 text-sm font-medium">Actions</th>
               </tr>
-            ) : (
-              filteredOrders.map((order) => (
-                <tr key={order.code} className="hover:bg-gray-100 transition">
-                  <td className="px-6 py-4 text-gray-700">{order.code}</td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {order.matchId ? "Billets" : "Abonnement"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {order.userDetails?.userName || "-"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {order.matchId ? order.tickets.length : "1"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {formatDate(order.createdAt)}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {order.promoCodeId
-                      ? order.promotion?.type === "percent"
-                        ? `${order.promotion?.percent}%`
-                        : `$${order.promotion?.amount}`
-                      : "-"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    $ {(order.amount / 100).toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 flex space-x-5 items-center">
-                    <Link
-                      href={`/tableau-de-bord/commandes/${order.code}`}
-                      className="text-black hover:text-gray-700 cursor-pointer"
-                    >
-                      <IoEyeSharp size={22} />
-                    </Link>
+            </thead>
+
+            <tbody className="divide-y divide-gray-200">
+              {orders.length === 0 ? (
+                <tr className="text-center">
+                  <td colSpan={8} className="px-6 py-4 text-gray-500">
+                    Aucune commande trouvée
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                orders.map((order) => (
+                  <tr key={order.code || order.id} className="hover:bg-gray-100 transition">
+                    <td className="px-6 py-4 text-gray-700">{order.code}</td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {order.matchId ? "Billets" : "Abonnement"}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {order.userDetails?.userName || "-"}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {order.matchId ? (Array.isArray(order.tickets) ? order.tickets.length : 1) : "1"}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {formatDate(order.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {order.promoCodeId
+                        ? order.promotion?.type === "percent"
+                          ? `${order.promotion?.percent}%`
+                          : `$${order.promotion?.amount}`
+                        : "-"}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      $ {(order.amount / 100).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 flex space-x-5 items-center">
+                      <Link
+                        href={`/tableau-de-bord/commandes/${order.code}`}
+                        className="text-black hover:text-gray-700 cursor-pointer"
+                      >
+                        <IoEyeSharp size={22} />
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalCount}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={(newSize) => {
+            setItemsPerPage(newSize);
+            setCurrentPage(1);
+            setCursors({ 1: null });
+          }}
+        />
       </div>
     </>
   );

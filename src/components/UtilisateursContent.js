@@ -2,78 +2,98 @@
 
 import React, { useState, useEffect } from "react";
 import Spinner from "./spinner/Spinner";
-
 import { WarningIcon } from "@/assets/svgs";
-
 import Image from "next/image";
-
-import { getAllUsers } from "@/services/user.service";
+import { getUsersPaginated } from "@/services/user.service";
 import { MdBlock } from "react-icons/md";
+import Pagination from "./Pagination";
+
 const UtilisateursContent = () => {
   const [users, setUsers] = useState([]);
-  const [usersList, setUsersList] = useState([]); // Unused state, can be removed if not needed
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchData = async () => {
+  // Server Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [cursors, setCursors] = useState({ 1: null });
+
+  const fetchData = async (page = currentPage, pageSize = itemsPerPage) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getAllUsers();
+      const cursorDoc = cursors[page] || null;
+
+      const response = await getUsersPaginated({
+        pageSize,
+        cursorDoc,
+        searchTerm,
+      });
+
       if (response.success) {
-        setUsers(response.data ?? []);
-        setUsersList(response.data ?? []); // Assuming you want to keep this state for some reason
+        setUsers(response.users);
+        setTotalCount(response.totalCount);
+
+        if (response.lastDoc) {
+          setCursors((prev) => ({ ...prev, [page + 1]: response.lastDoc }));
+        }
       } else {
-        console.error("Failed to fetch matchs");
-        setError(response.error ?? null);
+        setError(response.error || "Impossible de récupérer les utilisateurs.");
       }
-    } catch (error) {
-      setError("Une erreur s'est produite lors de la récupération des matchs.");
-      console.error("Error fetching matchs:", error);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+      setError(
+        "Une erreur s'est produite lors de la récupération des utilisateurs."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (event) => {
-    const searchTerm = event.target.value.toLowerCase();
-    const filteredMatchs = usersList.filter((user) =>
-      user.userName.toLowerCase().includes(searchTerm)
-    );
-    setUsers(filteredMatchs);
-  };
   useEffect(() => {
-    fetchData(); // Fetch data when the component mounts
-  }, []);
+    setCurrentPage(1);
+    setCursors({ 1: null });
+    fetchData(1, itemsPerPage);
+  }, [searchTerm, itemsPerPage]);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    fetchData(newPage, itemsPerPage);
+  };
+
   const formatDate = (timestamp) => {
+    if (!timestamp) return "N/A";
     const milliseconds =
       timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
 
     const date = new Date(milliseconds);
 
     const options = {
-      weekday: "long", // "Lundi"
-      day: "numeric", // "24"
-      month: "long", // "mars"
-      year: "numeric", // "2025"
-      hour: "2-digit", // "13"
-      minute: "2-digit", // "00"
-      hour12: false, // Use 24-hour format
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     };
 
     const formattedDate = date
       .toLocaleDateString("fr-FR", options)
-      .replace(",", " à"); // Replace comma with " à"
+      .replace(",", " à");
     return formattedDate;
   };
 
-  if (loading) {
+  if (loading && users.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-100px)] ">
+      <div className="flex items-center justify-center h-[calc(100vh-100px)]">
         <Spinner />
       </div>
     );
   }
+
   if (error) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-80px)]">
@@ -89,7 +109,7 @@ const UtilisateursContent = () => {
             Oups, quelque chose s&apos;est mal passé
           </p>
           <button
-            onClick={() => fetchData()}
+            onClick={() => fetchData(1, itemsPerPage)}
             className="mt-4 px-4 py-2 bg-[#DD636E] text-white rounded-lg cursor-pointer"
           >
             Réessayer
@@ -104,57 +124,79 @@ const UtilisateursContent = () => {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Rechercher un match..."
+          placeholder="Rechercher un utilisateur par nom ou email..."
           className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
-          onChange={handleSearch}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-brand text-black">
-            <tr>
-              <th className="px-6 py-3 text-sm font-medium">Nom et Prénom</th>
-              <th className="px-6 py-3 text-sm font-medium">Email</th>
-              <th className="px-6 py-3 text-sm font-medium">
-                Date d&apos;inscription
-              </th>
+      <div className="flex items-center mb-4">
+        <p className="text-gray-600">
+          {totalCount} Utilisateur
+          {totalCount > 1 ? "s" : ""} trouvé
+          {totalCount > 1 ? "s" : ""}
+        </p>
+      </div>
 
-              <th className="px-6 py-3 text-sm font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {/* Exemple de données statiques */}
-            {users.length === 0 ? (
-              <tr className="text-center">
-                <td colSpan={4} className="px-6 py-4 text-gray-500">
-                  Aucun utilisateur trouvé
-                </td>
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-brand text-black">
+              <tr>
+                <th className="px-6 py-3 text-sm font-medium">Nom et Prénom</th>
+                <th className="px-6 py-3 text-sm font-medium">Email</th>
+                <th className="px-6 py-3 text-sm font-medium">
+                  Date d&apos;inscription
+                </th>
+
+                <th className="px-6 py-3 text-sm font-medium">Actions</th>
               </tr>
-            ) : (
-              users.map((user) => (
-                <tr key={user.uid} className="hover:bg-gray-100 transition">
-                  <td className="px-6 py-4 text-gray-700">{user.userName}</td>
-                  <td className="px-6 py-4 text-gray-700">{user.email}</td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {formatDate(user.createdAt)}
-                  </td>
-
-                  <td className="px-6 py-4 flex space-x-5 items-center ">
-                    <button
-                      className="text-red-600 hover:text-red-800 cursor-pointer"
-                      onClick={() => {
-                        console.log("Block user:", user.uid);
-                      }}
-                    >
-                      <MdBlock size={22} />
-                    </button>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {users.length === 0 ? (
+                <tr className="text-center">
+                  <td colSpan={4} className="px-6 py-4 text-gray-500">
+                    Aucun utilisateur trouvé
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.uid} className="hover:bg-gray-100 transition">
+                    <td className="px-6 py-4 text-gray-700">{user.userName}</td>
+                    <td className="px-6 py-4 text-gray-700">{user.email}</td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {formatDate(user.createdAt)}
+                    </td>
+
+                    <td className="px-6 py-4 flex space-x-5 items-center">
+                      <button
+                        className="text-red-600 hover:text-red-800 cursor-pointer"
+                        onClick={() => {
+                          console.log("Block user:", user.uid);
+                        }}
+                      >
+                        <MdBlock size={22} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalCount}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={(newSize) => {
+            setItemsPerPage(newSize);
+            setCurrentPage(1);
+            setCursors({ 1: null });
+          }}
+        />
       </div>
     </>
   );

@@ -8,6 +8,9 @@ import {
   orderBy,
   documentId,
   where,
+  limit,
+  startAfter,
+  getCountFromServer,
 } from "firebase/firestore";
 
 const IN_LIMIT = 30;
@@ -69,6 +72,99 @@ export const getOrdersWithDetails = async () => {
   }
 
   return orders;
+};
+
+export const getOrdersPaginated = async ({
+  pageSize = 10,
+  cursorDoc = null,
+  searchTerm = "",
+  type = "tous",
+  fromDate = "",
+  toDate = "",
+}) => {
+  try {
+    const colRef = collection(db, "orders");
+    const constraints = [];
+
+    if (fromDate) {
+      constraints.push(where("createdAt", ">=", new Date(fromDate)));
+    }
+    if (toDate) {
+      constraints.push(
+        where("createdAt", "<=", new Date(`${toDate}T23:59:59.999`))
+      );
+    }
+
+    const countQuery = query(colRef, ...constraints);
+    const countSnap = await getCountFromServer(countQuery);
+    const totalCount = countSnap.data().count;
+
+    const dataQueryConstraints = [
+      ...constraints,
+      orderBy("createdAt", "desc"),
+    ];
+
+    if (cursorDoc) {
+      dataQueryConstraints.push(startAfter(cursorDoc));
+    }
+
+    dataQueryConstraints.push(limit(pageSize));
+
+    const ordersSnap = await getDocs(query(colRef, ...dataQueryConstraints));
+    let orders = ordersSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }));
+    const lastDoc = ordersSnap.docs[ordersSnap.docs.length - 1] || null;
+
+    const userIds = new Set();
+    const promoIds = new Set();
+
+    for (const o of orders) {
+      if (o.userId) userIds.add(String(o.userId));
+      if (o.promoCodeId) promoIds.add(String(o.promoCodeId));
+    }
+
+    const [usersById, promosById] = await Promise.all([
+      fetchByIds("users", Array.from(userIds)),
+      fetchByIds("promoCodes", Array.from(promoIds)),
+    ]);
+
+    for (const o of orders) {
+      if (o.userId) o.userDetails = usersById.get(String(o.userId)) || null;
+      if (o.promoCodeId)
+        o.promotion = promosById.get(String(o.promoCodeId)) || null;
+    }
+
+    if (type !== "tous") {
+      orders = orders.filter((o) => {
+        const isMatch = !!o.matchId;
+        return type === "matchs" ? isMatch : !isMatch;
+      });
+    }
+
+    if (searchTerm.trim()) {
+      const q = searchTerm.trim().toLowerCase();
+      orders = orders.filter((o) => {
+        const code = (o.code || "").toLowerCase();
+        const userName = (o.userDetails?.userName || "").toLowerCase();
+        return code.includes(q) || userName.includes(q);
+      });
+    }
+
+    return {
+      success: true,
+      orders,
+      totalCount,
+      lastDoc,
+    };
+  } catch (error) {
+    console.error("Error fetching paginated orders:", error);
+    return {
+      success: false,
+      error: "Une erreur s'est produite lors de la récupération des commandes.",
+      orders: [],
+      totalCount: 0,
+      lastDoc: null,
+    };
+  }
 };
 
 export const getOrderByCode = async (code) => {

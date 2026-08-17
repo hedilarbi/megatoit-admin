@@ -1,14 +1,15 @@
 "use client";
-import { getAllTickets } from "@/services/match.service";
-import React, { useState, useEffect, useMemo } from "react";
+import { getTicketsPaginated, getAllMatches } from "@/services/match.service";
+import React, { useState, useEffect } from "react";
 import Spinner from "./spinner/Spinner";
-
 import { WarningIcon } from "@/assets/svgs";
-
 import Image from "next/image";
+import Pagination from "./Pagination";
 
 const TicketsContent = () => {
   const [tickets, setTickets] = useState([]);
+  const [matches, setMatches] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,24 +19,64 @@ const TicketsContent = () => {
   const [selectedMatch, setSelectedMatch] = useState("");
   const [ticketStatus, setTicketStatus] = useState("tous"); // "all" | "used" | "unused"
 
-  const fetchData = async () => {
+  // Server Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [cursors, setCursors] = useState({ 1: null });
+
+  const fetchData = async (page = currentPage, pageSize = itemsPerPage) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getAllTickets();
+      const cursorDoc = cursors[page] || null;
+
+      const response = await getTicketsPaginated({
+        pageSize,
+        cursorDoc,
+        searchTerm,
+        selectedMatch,
+        fromDate,
+        toDate,
+        ticketStatus,
+      });
+
       if (response.success) {
-        setTickets(response.data ?? []);
+        setTickets(response.tickets);
+        setTotalCount(response.totalCount);
+
+        if (response.lastDoc) {
+          setCursors((prev) => ({ ...prev, [page + 1]: response.lastDoc }));
+        }
       } else {
-        console.error("Failed to fetch matchs");
-        setError(response.error ?? null);
+        setError(response.error || "Impossible de récupérer les billets.");
       }
-    } catch (error) {
-      setError("Une erreur s'est produite lors de la récupération des matchs.");
-      console.error("Error fetching matchs:", error);
+    } catch (err) {
+      console.error("Error fetching tickets:", err);
+      setError("Une erreur s'est produite lors de la récupération des billets.");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const loadMatches = async () => {
+      const res = await getAllMatches();
+      if (res.success) setMatches(res.data || []);
+    };
+    loadMatches();
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    setCursors({ 1: null });
+    fetchData(1, itemsPerPage);
+  }, [searchTerm, fromDate, toDate, selectedMatch, ticketStatus, itemsPerPage]);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    fetchData(newPage, itemsPerPage);
+  };
+
   const tsToDate = (ts) =>
     new Date(ts.seconds * 1000 + ts.nanoseconds / 1_000_000);
   const formatDate = (timestamp) => {
@@ -64,47 +105,17 @@ const TicketsContent = () => {
     return str;
   };
 
-  useEffect(() => {
-    fetchData(); // Fetch data when the component mounts
-  }, []);
-  const filteredTickets = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    const from = fromDate ? new Date(fromDate) : null;
-    const to = toDate ? new Date(`${toDate}T23:59:59.999`) : null;
-
-    return tickets.filter((o) => {
-      const code = (o.TicketCode || "").toLowerCase();
-      const userName = (o.userDetails?.userName || "").toLowerCase();
-
-      const matchesSearch =
-        q === "" ? true : code.includes(q) || userName.includes(q);
-
-      const matchesMatch =
-        !selectedMatch ||
-        (o.matchDetails?.date &&
-          `${o.matchDetails.date.seconds}-${o.matchDetails.date.nanoseconds}` ===
-            selectedMatch);
-
-      const d = tsToDate(o.createdAt);
-      const matchesDate = (!from || d >= from) && (!to || d <= to);
-
-      const matchesStatus =
-        ticketStatus === "tous" ||
-        (ticketStatus === "true" && o.isUsed) ||
-        (ticketStatus === "false" && !o.isUsed);
-
-      return matchesSearch && matchesDate && matchesMatch && matchesStatus;
-    });
-  }, [tickets, searchTerm, fromDate, toDate, selectedMatch, ticketStatus]);
-
   const resetFilters = () => {
     setSearchTerm("");
     setFromDate("");
     setToDate("");
     setSelectedMatch("");
+    setTicketStatus("tous");
+    setCurrentPage(1);
+    setCursors({ 1: null });
   };
 
-  if (loading) {
+  if (loading && tickets.length === 0) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-100px)] ">
         <Spinner />
@@ -126,7 +137,7 @@ const TicketsContent = () => {
             Oups, quelque chose s&apos;est mal passé
           </p>
           <button
-            onClick={() => fetchData()}
+            onClick={() => fetchData(1, itemsPerPage)}
             className="mt-4 px-4 py-2 bg-[#DD636E] text-white rounded-lg cursor-pointer"
           >
             Réessayer
@@ -155,23 +166,12 @@ const TicketsContent = () => {
               onChange={(e) => setSelectedMatch(e.target.value)}
             >
               <option value="">Tous les matchs</option>
-              {Array.from(
-                new Map(
-                  tickets
-                    .filter((t) => t.matchDetails?.date)
-                    .map((t) => [
-                      t.matchDetails.date.seconds +
-                        "-" +
-                        t.matchDetails.date.nanoseconds,
-                      t.matchDetails.date,
-                    ])
-                ).values()
-              ).map((match) => (
+              {matches.map((match) => (
                 <option
-                  key={match.seconds + "-" + match.nanoseconds}
-                  value={match.seconds + "-" + match.nanoseconds}
+                  key={match.id}
+                  value={match.date ? `${match.date.seconds}-${match.date.nanoseconds}` : match.id}
                 >
-                  {formatMatchDate(match)}
+                  {formatMatchDate(match.date)}
                 </option>
               ))}
             </select>
@@ -226,74 +226,87 @@ const TicketsContent = () => {
 
       <div className="flex items-center mb-4">
         <p className=" text-gray-600">
-          {filteredTickets.length} Billet
-          {filteredTickets.length > 1 ? "s" : ""} trouvé
-          {filteredTickets.length > 1 ? "s" : ""}
+          {totalCount} Billet
+          {totalCount > 1 ? "s" : ""} trouvé
+          {totalCount > 1 ? "s" : ""}
         </p>
       </div>
 
-      <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-brand text-black">
-            <tr>
-              <th className="px-6 py-3 text-sm font-medium">Code</th>
-              <th className="px-6 py-3 text-sm font-medium">Utilisateur</th>
-              <th className="px-6 py-3 text-sm font-medium">
-                Date d&apos;achat
-              </th>
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-brand text-black">
+              <tr>
+                <th className="px-6 py-3 text-sm font-medium">Code</th>
+                <th className="px-6 py-3 text-sm font-medium">Utilisateur</th>
+                <th className="px-6 py-3 text-sm font-medium">
+                  Date d&apos;achat
+                </th>
 
-              <th className="px-6 py-3 text-sm font-medium">Date du match</th>
-              <th className="px-6 py-3 text-sm font-medium">Etat du billet</th>
+                <th className="px-6 py-3 text-sm font-medium">Date du match</th>
+                <th className="px-6 py-3 text-sm font-medium">Etat du billet</th>
 
-              <th className="px-6 py-3 text-sm font-medium">Lien du billet</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {/* Exemple de données statiques */}
-            {filteredTickets.length === 0 ? (
-              <tr className="text-center">
-                <td colSpan={4} className="px-6 py-4 text-gray-500">
-                  Aucun billet trouvé
-                </td>
+                <th className="px-6 py-3 text-sm font-medium">Lien du billet</th>
               </tr>
-            ) : (
-              filteredTickets.map((ticket) => (
-                <tr
-                  key={ticket.TicketCode}
-                  className="hover:bg-gray-100 transition"
-                >
-                  <td className="px-6 py-4 text-gray-700">
-                    {ticket.TicketCode}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {ticket.userDetails?.userName || "N/A"}
-                  </td>
-
-                  <td className="px-6 py-4 text-gray-700">
-                    {formatDate(ticket.createdAt)}
-                  </td>
-
-                  <td className="px-6 py-4 text-gray-700">
-                    {formatMatchDate(ticket.matchDetails?.date) || "N/A"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {ticket.isUsed ? "Utilisé" : "Disponible"}
-                  </td>
-
-                  <td className="px-6 py-4 flex space-x-5 items-center ">
-                    <a
-                      target="_blank"
-                      href={ticket.downloadUrl}
-                      className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
-                    >
-                      Voir le billet
-                    </a>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {tickets.length === 0 ? (
+                <tr className="text-center">
+                  <td colSpan={6} className="px-6 py-4 text-gray-500">
+                    Aucun billet trouvé
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                tickets.map((ticket) => (
+                  <tr
+                    key={ticket.TicketCode || ticket.id}
+                    className="hover:bg-gray-100 transition"
+                  >
+                    <td className="px-6 py-4 text-gray-700">
+                      {ticket.TicketCode}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {ticket.userDetails?.userName || "N/A"}
+                    </td>
+
+                    <td className="px-6 py-4 text-gray-700">
+                      {formatDate(ticket.createdAt)}
+                    </td>
+
+                    <td className="px-6 py-4 text-gray-700">
+                      {formatMatchDate(ticket.matchDetails?.date) || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {ticket.isUsed ? "Utilisé" : "Disponible"}
+                    </td>
+
+                    <td className="px-6 py-4 flex space-x-5 items-center ">
+                      <a
+                        target="_blank"
+                        href={ticket.downloadUrl}
+                        className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+                      >
+                        Voir le billet
+                      </a>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalCount}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={(newSize) => {
+            setItemsPerPage(newSize);
+            setCurrentPage(1);
+            setCursors({ 1: null });
+          }}
+        />
       </div>
     </>
   );

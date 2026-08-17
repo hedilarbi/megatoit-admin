@@ -1,17 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Spinner from "./spinner/Spinner";
-
 import { WarningIcon } from "@/assets/svgs";
-
 import Image from "next/image";
 import Link from "next/link";
-
-import { getAllSubscriptions } from "@/services/abonement.service";
+import { getSubscriptionsPaginated } from "@/services/abonement.service";
+import Pagination from "./Pagination";
 
 const AbonementsContent = () => {
-  const [abonements, setAbonements] = useState([]);
+  const [abonnements, setAbonnements] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -19,26 +18,56 @@ const AbonementsContent = () => {
   const [toDate, setToDate] = useState(""); // yyyy-mm-dd
   const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchData = async () => {
+  // Server Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [cursors, setCursors] = useState({ 1: null });
+
+  const fetchData = async (page = currentPage, pageSize = itemsPerPage) => {
     try {
       setLoading(true);
       setError("");
-      const response = await getAllSubscriptions();
+      const cursorDoc = cursors[page] || null;
+
+      const response = await getSubscriptionsPaginated({
+        pageSize,
+        cursorDoc,
+        searchTerm,
+        fromDate,
+        toDate,
+      });
+
       if (response.success) {
-        setAbonements(response.data ?? []);
+        setAbonnements(response.subscriptions);
+        setTotalCount(response.totalCount);
+
+        if (response.lastDoc) {
+          setCursors((prev) => ({ ...prev, [page + 1]: response.lastDoc }));
+        }
       } else {
-        console.error("Failed to fetch abonements");
-        setError(response.error ?? null);
+        setError(response.error || "Impossible de récupérer les abonnements.");
       }
-    } catch (error) {
+    } catch (err) {
+      console.error("Error fetching subscriptions:", err);
       setError(
-        "Une erreur s'est produite lors de la récupération des abonements."
+        "Une erreur s'est produite lors de la récupération des abonnements."
       );
-      console.error("Error fetching abonements:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+    setCursors({ 1: null });
+    fetchData(1, itemsPerPage);
+  }, [searchTerm, fromDate, toDate, itemsPerPage]);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    fetchData(newPage, itemsPerPage);
+  };
+
   const tsToDate = (ts) =>
     new Date(ts.seconds * 1000 + ts.nanoseconds / 1_000_000);
   const formatDate = (timestamp) => {
@@ -50,42 +79,22 @@ const AbonementsContent = () => {
     )}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
-  useEffect(() => {
-    fetchData(); // Fetch data when the component mounts
-  }, []);
-
-  const filteredAbonnements = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    const from = fromDate ? new Date(fromDate) : null;
-    const to = toDate ? new Date(`${toDate}T23:59:59.999`) : null;
-
-    return abonements.filter((o) => {
-      const code = (o.code || "").toLowerCase();
-      const userName = (o.user?.userName || "").toLowerCase();
-
-      const matchesSearch =
-        q === "" ? true : code.includes(q) || userName.includes(q);
-
-      const d = tsToDate(o.createdAt);
-      const abonnementsDate = (!from || d >= from) && (!to || d <= to);
-
-      return matchesSearch && abonnementsDate;
-    });
-  }, [abonements, searchTerm, fromDate, toDate]);
-
   const resetFilters = () => {
     setSearchTerm("");
     setFromDate("");
     setToDate("");
+    setCurrentPage(1);
+    setCursors({ 1: null });
   };
 
-  if (loading) {
+  if (loading && abonnements.length === 0) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-100px)] ">
         <Spinner />
       </div>
     );
   }
+
   if (error) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-80px)]">
@@ -101,7 +110,7 @@ const AbonementsContent = () => {
             Oups, quelque chose s&apos;est mal passé
           </p>
           <button
-            onClick={() => fetchData()}
+            onClick={() => fetchData(1, itemsPerPage)}
             className="mt-4 px-4 py-2 bg-[#DD636E] text-white rounded-lg cursor-pointer"
           >
             Réessayer
@@ -154,72 +163,84 @@ const AbonementsContent = () => {
       </div>
       <div className="flex items-center mb-4">
         <p className=" text-gray-600">
-          {filteredAbonnements.length} Abonnement
-          {filteredAbonnements.length > 1 ? "s" : ""} trouvé
-          {filteredAbonnements.length > 1 ? "s" : ""}
+          {totalCount} Abonnement
+          {totalCount > 1 ? "s" : ""} trouvé
+          {totalCount > 1 ? "s" : ""}
         </p>
       </div>
 
-      <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-brand text-black">
-            <tr>
-              <th className="px-6 py-3 text-sm font-medium">Code</th>
-              <th className="px-6 py-3 text-sm font-medium">Utilisateur</th>
-              <th className="px-6 py-3 text-sm font-medium">Saison</th>
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-brand text-black">
+              <tr>
+                <th className="px-6 py-3 text-sm font-medium">Code</th>
+                <th className="px-6 py-3 text-sm font-medium">Utilisateur</th>
+                <th className="px-6 py-3 text-sm font-medium">Saison</th>
 
-              <th className="px-6 py-3 text-sm font-medium">
-                Date d&apos;achat
-              </th>
+                <th className="px-6 py-3 text-sm font-medium">
+                  Date d&apos;achat
+                </th>
 
-              <th className="px-6 py-3 text-sm font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {/* Exemple de données statiques */}
-            {filteredAbonnements.length === 0 ? (
-              <tr className="text-center">
-                <td colSpan={4} className="px-6 py-4 text-gray-500">
-                  Aucun abonement trouvé
-                </td>
+                <th className="px-6 py-3 text-sm font-medium">Actions</th>
               </tr>
-            ) : (
-              filteredAbonnements.map((abonement) => (
-                <tr key={abonement.id} className="hover:bg-gray-100 transition">
-                  <td className="px-6 py-4 text-gray-700">{abonement?.code}</td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {abonement?.user?.userName}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {abonement?.abonnement?.title +
-                      "(" +
-                      abonement?.abonnement?.season +
-                      ")"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-700">
-                    {formatDate(abonement?.createdAt)}
-                  </td>
-
-                  <td className="px-6 py-4 flex space-x-5 items-center ">
-                    <Link
-                      href={`/abonnements/${abonement?.code}`}
-                      className="bg-black text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2 hover:bg-gray-800 transition"
-                    >
-                      Plus de détails
-                    </Link>
-                    <Link
-                      href={abonement?.downloadUrl || "#"}
-                      className="bg-black text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2 hover:bg-gray-800 transition"
-                      target="_blank"
-                    >
-                      Voir l&apos;abonnement
-                    </Link>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {abonnements.length === 0 ? (
+                <tr className="text-center">
+                  <td colSpan={5} className="px-6 py-4 text-gray-500">
+                    Aucun abonnement trouvé
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                abonnements.map((abonement) => (
+                  <tr key={abonement.id} className="hover:bg-gray-100 transition">
+                    <td className="px-6 py-4 text-gray-700">{abonement?.code}</td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {abonement?.user?.userName}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {abonement?.abonnement?.title
+                        ? `${abonement.abonnement.title} (${abonement.abonnement.season || ""})`
+                        : "N/A"}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700">
+                      {formatDate(abonement?.createdAt)}
+                    </td>
+
+                    <td className="px-6 py-4 flex space-x-5 items-center ">
+                      <Link
+                        href={`/abonnements/${abonement?.code}`}
+                        className="bg-black text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2 hover:bg-gray-800 transition"
+                      >
+                        Plus de détails
+                      </Link>
+                      <Link
+                        href={abonement?.downloadUrl || "#"}
+                        className="bg-black text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2 hover:bg-gray-800 transition"
+                        target="_blank"
+                      >
+                        Voir l&apos;abonnement
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalCount}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={(newSize) => {
+            setItemsPerPage(newSize);
+            setCurrentPage(1);
+            setCursors({ 1: null });
+          }}
+        />
       </div>
     </>
   );

@@ -11,6 +11,9 @@ import {
   query,
   deleteDoc,
   documentId,
+  limit,
+  startAfter,
+  getCountFromServer,
 } from "firebase/firestore";
 const IN_LIMIT = 30;
 export const addAbonement = async (abonement) => {
@@ -179,20 +182,108 @@ export const getAllSubscriptions = async () => {
 
     // 4) Attach without extra reads
     for (const s of subscriptions) {
-      s.user = s.userId ? usersById.get(String(s.userId)) || null : null;
-      s.order = s.orderId ? ordersById.get(String(s.orderId)) || null : null;
-      s.abonnement = s.abonnementId
-        ? abonnementsById.get(String(s.abonnementId)) || null
-        : null;
+      if (s.userId) s.user = usersById.get(String(s.userId)) || null;
+      if (s.orderId) s.orderDetails = ordersById.get(String(s.orderId)) || null;
+      if (s.abonnementId)
+        s.abonnement = abonnementsById.get(String(s.abonnementId)) || null;
     }
 
     return { success: true, data: subscriptions };
   } catch (error) {
-    console.error("Erreur lors de la récupération des subscriptions :", error);
+    console.error("Erreur lors de la récupération des abonements :", error);
     return {
       success: false,
       error:
-        "Une erreur s'est produite lors de la récupération des subscriptions",
+        "Une erreur s'est produite lors de la récupération des abonements",
+    };
+  }
+};
+
+export const getSubscriptionsPaginated = async ({
+  pageSize = 10,
+  cursorDoc = null,
+  searchTerm = "",
+  fromDate = "",
+  toDate = "",
+}) => {
+  try {
+    const colRef = collection(db, "subscriptions");
+    const constraints = [];
+
+    if (fromDate) {
+      constraints.push(where("createdAt", ">=", new Date(fromDate)));
+    }
+    if (toDate) {
+      constraints.push(
+        where("createdAt", "<=", new Date(`${toDate}T23:59:59.999`))
+      );
+    }
+
+    const countQuery = query(colRef, ...constraints);
+    const countSnap = await getCountFromServer(countQuery);
+    const totalCount = countSnap.data().count;
+
+    const dataQueryConstraints = [
+      ...constraints,
+      orderBy("createdAt", "desc"),
+    ];
+
+    if (cursorDoc) {
+      dataQueryConstraints.push(startAfter(cursorDoc));
+    }
+
+    dataQueryConstraints.push(limit(pageSize));
+
+    const subsSnap = await getDocs(query(colRef, ...dataQueryConstraints));
+    let subscriptions = subsSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }));
+    const lastDoc = subsSnap.docs[subsSnap.docs.length - 1] || null;
+
+    const userIds = new Set();
+    const orderIds = new Set();
+    const abonnementIds = new Set();
+
+    for (const s of subscriptions) {
+      if (s.userId) userIds.add(String(s.userId));
+      if (s.orderId) orderIds.add(String(s.orderId));
+      if (s.abonnementId) abonnementIds.add(String(s.abonnementId));
+    }
+
+    const [usersById, ordersById, abonnementsById] = await Promise.all([
+      fetchByIds("users", Array.from(userIds)),
+      fetchByIds("orders", Array.from(orderIds)),
+      fetchByIds("abonements", Array.from(abonnementIds)),
+    ]);
+
+    for (const s of subscriptions) {
+      if (s.userId) s.user = usersById.get(String(s.userId)) || null;
+      if (s.orderId) s.orderDetails = ordersById.get(String(s.orderId)) || null;
+      if (s.abonnementId)
+        s.abonnement = abonnementsById.get(String(s.abonnementId)) || null;
+    }
+
+    if (searchTerm.trim()) {
+      const q = searchTerm.trim().toLowerCase();
+      subscriptions = subscriptions.filter((s) => {
+        const code = (s.code || "").toLowerCase();
+        const userName = (s.user?.userName || "").toLowerCase();
+        return code.includes(q) || userName.includes(q);
+      });
+    }
+
+    return {
+      success: true,
+      subscriptions,
+      totalCount,
+      lastDoc,
+    };
+  } catch (error) {
+    console.error("Erreur lors de la récupération paginée des abonnements :", error);
+    return {
+      success: false,
+      error: "Une erreur s'est produite lors de la récupération des abonnements",
+      subscriptions: [],
+      totalCount: 0,
+      lastDoc: null,
     };
   }
 };

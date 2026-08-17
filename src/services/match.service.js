@@ -12,6 +12,8 @@ import {
   orderBy,
   documentId,
   getCountFromServer,
+  limit,
+  startAfter,
 } from "firebase/firestore";
 
 const IN_LIMIT = 30;
@@ -315,6 +317,111 @@ export const getAllTickets = async () => {
     return {
       success: false,
       error: "Une erreur s'est produite lors de la récupération des tickets",
+    };
+  }
+};
+
+export const getTicketsPaginated = async ({
+  pageSize = 10,
+  cursorDoc = null,
+  searchTerm = "",
+  selectedMatch = "",
+  fromDate = "",
+  toDate = "",
+  ticketStatus = "tous",
+}) => {
+  try {
+    const colRef = collection(db, "tickets");
+    const constraints = [];
+
+    if (fromDate) {
+      constraints.push(where("createdAt", ">=", new Date(fromDate)));
+    }
+    if (toDate) {
+      constraints.push(
+        where("createdAt", "<=", new Date(`${toDate}T23:59:59.999`))
+      );
+    }
+    if (ticketStatus === "true") {
+      constraints.push(where("isUsed", "==", true));
+    } else if (ticketStatus === "false") {
+      constraints.push(where("isUsed", "==", false));
+    }
+
+    const countQuery = query(colRef, ...constraints);
+    const countSnap = await getCountFromServer(countQuery);
+    const totalCount = countSnap.data().count;
+
+    const dataQueryConstraints = [
+      ...constraints,
+      orderBy("createdAt", "desc"),
+    ];
+
+    if (cursorDoc) {
+      dataQueryConstraints.push(startAfter(cursorDoc));
+    }
+
+    dataQueryConstraints.push(limit(pageSize));
+
+    const ticketsSnap = await getDocs(query(colRef, ...dataQueryConstraints));
+    let tickets = ticketsSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }));
+    const lastDoc = ticketsSnap.docs[ticketsSnap.docs.length - 1] || null;
+
+    const userIds = new Set();
+    const matchIds = new Set();
+    const orderIds = new Set();
+
+    for (const t of tickets) {
+      if (t.userId) userIds.add(String(t.userId));
+      if (t.matchId) matchIds.add(String(t.matchId));
+      if (t.orderId) orderIds.add(String(t.orderId));
+    }
+
+    const [usersById, matchsById, ordersById] = await Promise.all([
+      fetchByIds("users", Array.from(userIds)),
+      fetchByIds("matchs", Array.from(matchIds)),
+      fetchByIds("orders", Array.from(orderIds)),
+    ]);
+
+    for (const t of tickets) {
+      if (t.userId) t.userDetails = usersById.get(String(t.userId)) || null;
+      if (t.matchId) t.matchDetails = matchsById.get(String(t.matchId)) || null;
+      if (t.orderId) t.orderDetails = ordersById.get(String(t.orderId)) || null;
+    }
+
+    if (selectedMatch) {
+      tickets = tickets.filter((t) => {
+        return (
+          t.matchDetails?.date &&
+          `${t.matchDetails.date.seconds}-${t.matchDetails.date.nanoseconds}` ===
+            selectedMatch
+        );
+      });
+    }
+
+    if (searchTerm.trim()) {
+      const q = searchTerm.trim().toLowerCase();
+      tickets = tickets.filter((t) => {
+        const code = (t.TicketCode || "").toLowerCase();
+        const userName = (t.userDetails?.userName || "").toLowerCase();
+        return code.includes(q) || userName.includes(q);
+      });
+    }
+
+    return {
+      success: true,
+      tickets,
+      totalCount,
+      lastDoc,
+    };
+  } catch (error) {
+    console.error("Erreur lors de la récupération paginée des tickets :", error);
+    return {
+      success: false,
+      error: "Une erreur s'est produite lors de la récupération des tickets",
+      tickets: [],
+      totalCount: 0,
+      lastDoc: null,
     };
   }
 };

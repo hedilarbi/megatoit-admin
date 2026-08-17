@@ -13,7 +13,7 @@ import { GiHockey } from "react-icons/gi";
 import { FaUsers, FaTicket } from "react-icons/fa6";
 import { IoLogOut } from "react-icons/io5";
 
-import Megatoit from "@/assets/megatoit.png";
+import Logo from "@/assets/logo-big.png";
 
 // Navigation items type definition
 type NavItem = {
@@ -100,14 +100,14 @@ const SideBar = () => {
   return (
     <aside
       id="sidebar"
-      className="h-full bg-black text-white shadow-lg w-64 border-r-4 border-brand"
+      className="h-full bg-black text-white shadow-lg w-80 border-r-4 border-brand"
       aria-label="Sidebar navigation"
     >
       <div className="flex flex-col h-full p-5">
         {/* Logo */}
         <div className="flex justify-center py-4">
           <Image
-            src={Megatoit} // Adjust the path to your logo
+            src={Logo} // Adjust the path to your logo
             className="w-auto h-24"
             width={180}
             height={48}
@@ -130,11 +130,10 @@ const SideBar = () => {
                 aria-label={item.ariaLabel}
                 aria-current={isActive ? "page" : undefined}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
-                             ${
-                               isActive
-                                 ? "bg-brand text-black font-semibold"
-                                 : "text-gray-300 hover:bg-white/10 hover:text-brand"
-                             }`}
+                             ${isActive
+                    ? "bg-brand text-black font-semibold"
+                    : "text-gray-300 hover:bg-white/10 hover:text-brand"
+                  }`}
               >
                 {item.icon}
                 <span className="text-base">{item.label}</span>
