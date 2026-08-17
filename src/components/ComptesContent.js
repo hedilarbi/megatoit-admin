@@ -140,7 +140,7 @@ const ComptesContent = () => {
 
       <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-blue-600 text-white">
+          <thead className="bg-brand text-black">
             <tr>
               <th className="px-6 py-3 text-sm font-medium">Nom et Prenom</th>
               <th className="px-6 py-3 text-sm font-medium">Email</th>
@@ -167,7 +167,7 @@ const ComptesContent = () => {
                   <td className="px-6 py-4 text-gray-700">
                     <select
                       defaultValue={compte.status}
-                      className="px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
                       onChange={(e) =>
                         handleUpdateStatus(compte.uid, e.target.value)
                       }

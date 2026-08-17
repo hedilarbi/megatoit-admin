@@ -117,7 +117,7 @@ const AbonementsContent = () => {
         <input
           type="text"
           placeholder="Rechercher un abonnement par code ou par nom d'utilisateur..."
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           onChange={(e) => setSearchTerm(e.target.value)}
           value={searchTerm}
         />
@@ -130,7 +130,7 @@ const AbonementsContent = () => {
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -141,7 +141,7 @@ const AbonementsContent = () => {
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -162,7 +162,7 @@ const AbonementsContent = () => {
 
       <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-blue-600 text-white">
+          <thead className="bg-brand text-black">
             <tr>
               <th className="px-6 py-3 text-sm font-medium">Code</th>
               <th className="px-6 py-3 text-sm font-medium">Utilisateur</th>
@@ -203,13 +203,13 @@ const AbonementsContent = () => {
                   <td className="px-6 py-4 flex space-x-5 items-center ">
                     <Link
                       href={`/abonnements/${abonement?.code}`}
-                      className="bg-blue-600  text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2"
+                      className="bg-black text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2 hover:bg-gray-800 transition"
                     >
                       Plus de détails
                     </Link>
                     <Link
                       href={abonement?.downloadUrl || "#"}
-                      className="bg-blue-600  text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2"
+                      className="bg-black text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2 hover:bg-gray-800 transition"
                       target="_blank"
                     >
                       Voir l&apos;abonnement

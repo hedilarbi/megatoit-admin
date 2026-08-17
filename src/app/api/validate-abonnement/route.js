@@ -19,6 +19,14 @@ if (!getApps().length) {
 // ---------- Tiny caches ----------
 const TOKEN_CACHE = new Map(); // token -> { decoded, expMs }
 const TOKEN_EXP_MARGIN_MS = 60_000; // refresh a bit before expiry
+const TOKEN_CACHE_MAX = 50; // max entries — prevents memory leak on long sessions
+
+function evictExpiredTokens() {
+  const now = Date.now();
+  for (const [key, val] of TOKEN_CACHE.entries()) {
+    if (val.expMs - TOKEN_EXP_MARGIN_MS <= now) TOKEN_CACHE.delete(key);
+  }
+}
 function getCachedDecoded(token) {
   const hit = TOKEN_CACHE.get(token);
   if (!hit) return null;
@@ -31,7 +39,17 @@ function getCachedDecoded(token) {
 function putTokenCache(token, decoded) {
   const expSec = decoded?.exp || 0;
   const expMs = expSec * 1000;
-  if (expMs > Date.now()) TOKEN_CACHE.set(token, { decoded, expMs });
+  if (expMs > Date.now()) {
+    // Proactive eviction: purge expired entries before adding a new one,
+    // and enforce max size to prevent unbounded memory growth during long sessions.
+    if (TOKEN_CACHE.size >= TOKEN_CACHE_MAX) evictExpiredTokens();
+    // If still over limit after eviction, drop the oldest entry
+    if (TOKEN_CACHE.size >= TOKEN_CACHE_MAX) {
+      const firstKey = TOKEN_CACHE.keys().next().value;
+      TOKEN_CACHE.delete(firstKey);
+    }
+    TOKEN_CACHE.set(token, { decoded, expMs });
+  }
 }
 
 const EMP_CACHE = new Map(); // uid -> expiresAt

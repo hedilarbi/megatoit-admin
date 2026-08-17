@@ -4,7 +4,7 @@ import DateTimePicker from "react-datetime-picker";
 import "react-datetime-picker/dist/DateTimePicker.css";
 import "react-calendar/dist/Calendar.css";
 import "react-clock/dist/Clock.css";
-import { getMatchByUid, updateMatch } from "@/services/match.service";
+import { getMatchByUid, updateMatch, getTeams } from "@/services/match.service";
 import Spinner from "./spinner/Spinner";
 import toast from "react-hot-toast";
 import { useParams } from "next/navigation";
@@ -14,6 +14,7 @@ const UpdateMatchForm = () => {
   const { matchId } = useParams();
 
   const [opponent, setOpponent] = useState("");
+  const [homeTeam, setHomeTeam] = useState(null);
   const [date, setDate] = useState(new Date());
   const [location, setLocation] = useState("");
   const [totalSeats, setTotalSeats] = useState("");
@@ -28,12 +29,32 @@ const UpdateMatchForm = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getMatchByUid(matchId);
-      console.log("Response from getMatchByUid:", response);
+      const [response, teamsResponse] = await Promise.all([
+        getMatchByUid(matchId),
+        getTeams(),
+      ]);
+
+      if (teamsResponse.success && teamsResponse.data) {
+        const found = teamsResponse.data.find(
+          (t) =>
+            t.name?.toLowerCase().includes("trois-rivière") ||
+            t.name?.toLowerCase().includes("trois-riviere") ||
+            t["full-name"]?.toLowerCase().includes("trois-rivière") ||
+            t["full-name"]?.toLowerCase().includes("trois-riviere") ||
+            t["full-name"]?.toLowerCase().includes("bsr") ||
+            t.fullName?.toLowerCase().includes("trois-rivière") ||
+            t.fullName?.toLowerCase().includes("trois-riviere") ||
+            t.fullName?.toLowerCase().includes("bsr") ||
+            t.name?.toLowerCase().includes("bsr")
+        );
+        if (found) setHomeTeam(found);
+      }
+
       if (response.success) {
         const match = response.data;
 
         setOpponent(match.opponent);
+        if (match.homeTeam) setHomeTeam(match.homeTeam);
         const formatedDate = formatDate(match.date);
         setType(match.type || "Domicile");
         setCategory(match.category || "Saison");
@@ -151,8 +172,8 @@ const UpdateMatchForm = () => {
               Titre
             </label>
             <div className="flex items-center space-x-2">
-              <span className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm  sm:text-sm bg-gray-100">
-                Hockey Team
+              <span className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm sm:text-sm bg-gray-100 font-medium text-gray-800">
+                {homeTeam ? (homeTeam["full-name"] || homeTeam.fullName || homeTeam.name) : "BSR DE TROIS-RIVIÈRES"}
               </span>
               <span>VS</span>
               <span className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm  sm:text-sm bg-gray-100">
@@ -174,7 +195,7 @@ const UpdateMatchForm = () => {
             name="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className=" p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className=" p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
           /> */}
             <DateTimePicker onChange={setDate} value={date} />
           </div>
@@ -190,7 +211,7 @@ const UpdateMatchForm = () => {
               name="type"
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
             >
               <option value="Domicile">Domicile</option>
               <option value="À l'étranger">À l&apos;étranger</option>
@@ -208,7 +229,7 @@ const UpdateMatchForm = () => {
               name="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
             >
               <option value="Saison">Saison</option>
               <option value="Présaison">Présaison</option>
@@ -227,7 +248,7 @@ const UpdateMatchForm = () => {
               name="location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
               placeholder="Nom du stade"
             />
           </div>
@@ -245,7 +266,7 @@ const UpdateMatchForm = () => {
               name="totalSeats"
               value={totalSeats}
               onChange={(e) => setTotalSeats(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
               placeholder="Ex: 5000"
             />
           </div>
@@ -263,15 +284,16 @@ const UpdateMatchForm = () => {
               name="ticketPrice"
               value={ticketPrice}
               onChange={(e) => setTicketPrice(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
               placeholder="Ex: 20.00"
             />
           </div>
         </div>
         <div>
           <button
+            type="submit"
             onClick={handleSubmit}
-            className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
           >
             Mettre à jour le match
           </button>

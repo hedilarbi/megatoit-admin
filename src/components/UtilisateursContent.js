@@ -105,14 +105,14 @@ const UtilisateursContent = () => {
         <input
           type="text"
           placeholder="Rechercher un match..."
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           onChange={handleSearch}
         />
       </div>
 
       <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-blue-600 text-white">
+          <thead className="bg-brand text-black">
             <tr>
               <th className="px-6 py-3 text-sm font-medium">Nom et Prénom</th>
               <th className="px-6 py-3 text-sm font-medium">Email</th>

@@ -10,7 +10,7 @@ const page = async ({ params }) => {
         <div className="flex  items-center mb-6 space-x-4">
           <Link
             href="/abonnements"
-            className="bg-blue-600 text-white rounded-full p-3 flex justify-center items-center"
+            className="bg-black text-white rounded-full p-3 flex justify-center items-center hover:bg-gray-800 transition"
           >
             <FaArrowLeftLong className="" />
           </Link>

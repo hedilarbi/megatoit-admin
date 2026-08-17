@@ -46,6 +46,19 @@ const CreateMatchForm = () => {
     fetchEquipes();
   }, []);
 
+  const homeTeam = equipes.find(
+    (team) =>
+      team.name?.toLowerCase().includes("trois-rivière") ||
+      team.name?.toLowerCase().includes("trois-riviere") ||
+      team["full-name"]?.toLowerCase().includes("trois-rivière") ||
+      team["full-name"]?.toLowerCase().includes("trois-riviere") ||
+      team["full-name"]?.toLowerCase().includes("bsr") ||
+      team.fullName?.toLowerCase().includes("trois-rivière") ||
+      team.fullName?.toLowerCase().includes("trois-riviere") ||
+      team.fullName?.toLowerCase().includes("bsr") ||
+      team.name?.toLowerCase().includes("bsr")
+  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -60,6 +73,7 @@ const CreateMatchForm = () => {
       setSubmitting(true);
       const matchData = {
         opponent: oponentData,
+        homeTeam: homeTeam || null,
         date: new Date(date),
         place: location,
         totalSeats: parseInt(totalSeats, 10),
@@ -111,8 +125,8 @@ const CreateMatchForm = () => {
               Titre
             </label>
             <div className="flex items-center space-x-2">
-              <span className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm  sm:text-sm bg-gray-100">
-                Megatoit
+              <span className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm sm:text-sm bg-gray-100 font-medium text-gray-800">
+                {homeTeam ? (homeTeam["full-name"] || homeTeam.fullName || homeTeam.name) : "BSR DE TROIS-RIVIÈRES"}
               </span>
               <span>VS</span>
               <select
@@ -120,15 +134,17 @@ const CreateMatchForm = () => {
                 name="opponent"
                 value={opponent}
                 onChange={(e) => setOpponent(e.target.value)}
-                className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
               >
                 <option value="">Sélectionnez l&apos;adversaire</option>
                 {equipes.length > 0 ? (
-                  equipes.map((team, index) => (
-                    <option key={index} value={team.id}>
-                      {team.name}
-                    </option>
-                  ))
+                  equipes
+                    .filter((team) => team.id !== homeTeam?.id)
+                    .map((team, index) => (
+                      <option key={team.id || index} value={team.id}>
+                        {team.name}
+                      </option>
+                    ))
                 ) : (
                   <option value="" disabled>
                     Aucune équipe disponible
@@ -151,7 +167,7 @@ const CreateMatchForm = () => {
             name="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className=" p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className=" p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
           /> */}
             <DateTimePicker onChange={setDate} value={date} />
           </div>
@@ -167,7 +183,7 @@ const CreateMatchForm = () => {
               name="type"
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
             >
               <option value="Domicile">Domicile</option>
               <option value="À l'étranger">À l&apos;étranger</option>
@@ -185,7 +201,7 @@ const CreateMatchForm = () => {
               name="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
             >
               <option value="Saison">Saison</option>
               <option value="Présaison">Présaison</option>
@@ -204,7 +220,7 @@ const CreateMatchForm = () => {
               name="location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
               placeholder="Nom du stade"
             />
           </div>
@@ -222,7 +238,7 @@ const CreateMatchForm = () => {
               name="totalSeats"
               value={totalSeats}
               onChange={(e) => setTotalSeats(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
               placeholder="Ex: 5000"
             />
           </div>
@@ -240,15 +256,16 @@ const CreateMatchForm = () => {
               name="ticketPrice"
               value={ticketPrice}
               onChange={(e) => setTicketPrice(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
               placeholder="Ex: 20.00"
             />
           </div>
         </div>
         <div>
           <button
+            type="submit"
             onClick={handleSubmit}
-            className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
           >
             Créer le match
           </button>

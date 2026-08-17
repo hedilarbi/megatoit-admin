@@ -5,6 +5,7 @@ import { getFirestore, collection, addDoc } from "firebase/firestore";
 
 const CreateTeamPage = () => {
   const [teamName, setTeamName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,11 +29,14 @@ const CreateTeamPage = () => {
 
       await addDoc(teamsCollection, {
         name: teamName,
+        "full-name": fullName || teamName,
+        fullName: fullName || teamName,
         imageUrl,
       });
 
       alert("Équipe créée avec succès !");
       setTeamName("");
+      setFullName("");
       setImageFile(null);
     } catch (error) {
       console.error("Erreur lors de la création de l'équipe :", error);
@@ -48,14 +52,28 @@ const CreateTeamPage = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nom de l&apos;équipe :
+            Nom court / Abréviation :
           </label>
           <input
             type="text"
+            placeholder="Ex: Trois-Rivières"
             value={teamName}
             onChange={(e) => setTeamName(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand focus:border-brand"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Nom complet (Full Name) :
+          </label>
+          <input
+            type="text"
+            placeholder="Ex: BSR DE TROIS-RIVIÈRES"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand focus:border-brand"
           />
         </div>
         <div>
@@ -67,7 +85,7 @@ const CreateTeamPage = () => {
             accept="image/*"
             onChange={(e) => setImageFile(e.target.files?.[0] || null)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand focus:border-brand"
           />
         </div>
         <button
@@ -76,8 +94,8 @@ const CreateTeamPage = () => {
           className={`w-full px-4 py-2 text-white font-medium rounded-md ${
             loading
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-indigo-600 hover:bg-indigo-700"
-          } focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+              : "bg-black hover:bg-gray-800"
+          } focus:outline-none focus:ring-2 focus:ring-black`}
         >
           {loading ? "Création..." : "Créer l'équipe"}
         </button>

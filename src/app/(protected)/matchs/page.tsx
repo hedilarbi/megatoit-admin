@@ -10,7 +10,7 @@ const page = () => {
           <h1 className="text-3xl font-bold text-gray-800">Matchs</h1>
           <Link
             href="/matchs/ajouter"
-            className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
+            className="bg-black text-white px-5 py-2 rounded-lg shadow-md hover:bg-gray-800 transition"
           >
             Créer un match
           </Link>

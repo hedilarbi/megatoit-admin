@@ -16,7 +16,38 @@ if (!getApps().length) {
   initializeApp({ credential: cert(sa), projectId: sa.project_id });
 }
 
-// --- tiny cache for role checks (helps during bursts on warm instance) ---
+// --- Tiny caches for role + token checks (helps during bursts on warm instance) ---
+const TOKEN_CACHE = new Map(); // token -> { decoded, expMs }
+const TOKEN_EXP_MARGIN_MS = 60_000;
+const TOKEN_CACHE_MAX = 50; // max entries — prevents memory leak on long sessions
+
+function evictExpiredTokens() {
+  const now = Date.now();
+  for (const [key, val] of TOKEN_CACHE.entries()) {
+    if (val.expMs - TOKEN_EXP_MARGIN_MS <= now) TOKEN_CACHE.delete(key);
+  }
+}
+function getCachedDecoded(token) {
+  const hit = TOKEN_CACHE.get(token);
+  if (!hit) return null;
+  if (hit.expMs - TOKEN_EXP_MARGIN_MS <= Date.now()) {
+    TOKEN_CACHE.delete(token);
+    return null;
+  }
+  return hit.decoded;
+}
+function putTokenCache(token, decoded) {
+  const expSec = decoded?.exp || 0;
+  const expMs = expSec * 1000;
+  if (expMs > Date.now()) {
+    if (TOKEN_CACHE.size >= TOKEN_CACHE_MAX) evictExpiredTokens();
+    if (TOKEN_CACHE.size >= TOKEN_CACHE_MAX) {
+      TOKEN_CACHE.delete(TOKEN_CACHE.keys().next().value);
+    }
+    TOKEN_CACHE.set(token, { decoded, expMs });
+  }
+}
+
 const EMP_CACHE = new Map(); // uid -> expiresAt
 const EMP_TTL_MS = 60_000;
 const hasEmployeeCache = (uid) => (EMP_CACHE.get(uid) ?? 0) > Date.now();
@@ -35,8 +66,19 @@ export async function POST(request) {
     }
     const token = authHeader.split(" ")[1];
 
-    // Keep revocation check off for speed (default).
-    const decoded = await getAuth().verifyIdToken(token);
+    // Decode token with cache (avoids a verifyIdToken round-trip on every scan)
+    let decoded = getCachedDecoded(token);
+    if (!decoded) {
+      try {
+        decoded = await getAuth().verifyIdToken(token);
+      } catch {
+        return NextResponse.json(
+          { error: "Erreur d'authentification" },
+          { status: 401 }
+        );
+      }
+      putTokenCache(token, decoded);
+    }
     const db = getFirestore();
 
     // Short-lived cached role check to avoid a read every time

@@ -137,7 +137,7 @@ const MatchsContent = () => {
         <input
           type="text"
           placeholder="Rechercher un match par adversaire..."
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           onChange={handleSearch}
         />
       </div>
@@ -149,7 +149,7 @@ const MatchsContent = () => {
 
       <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-blue-600 text-white">
+          <thead className="bg-brand text-black">
             <tr>
               <th className="px-6 py-3 text-sm font-medium">Adversaire</th>
               <th className="px-6 py-3 text-sm font-medium">Date du match</th>
@@ -203,7 +203,7 @@ const MatchsContent = () => {
                   <td className="px-6 py-4 flex space-x-5 items-center ">
                     <Link
                       href={`/matchs/${match.id}`}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-black hover:text-gray-700"
                     >
                       <IoPencil size={22} />
                     </Link>

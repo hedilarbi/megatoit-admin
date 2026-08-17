@@ -166,7 +166,7 @@ const SubscriptionComponent = ({ code }) => {
                   <div className="flex ">
                     <div className="flex-1">
                       <p className="text-gray-700 mb-2">
-                        <strong>Match :</strong> Mégatoit vs{" "}
+                        <strong>Match :</strong> BSR DE TROIS-RIVIÈRES vs{" "}
                         {match.opponent.name}
                       </p>
                       <p className="text-gray-700 mb-2">

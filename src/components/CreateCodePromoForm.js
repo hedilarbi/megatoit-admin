@@ -121,7 +121,7 @@ const CreateCodePromoForm = () => {
               id="code"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
           <div>
@@ -135,7 +135,7 @@ const CreateCodePromoForm = () => {
               id="type"
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand"
             >
               <option value="percent">Pourcentage</option>
               <option value="amount">Montant fixe</option>
@@ -154,7 +154,7 @@ const CreateCodePromoForm = () => {
               id="value"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
           <div className="">
@@ -168,8 +168,8 @@ const CreateCodePromoForm = () => {
               <button
                 className={`${
                   typeOfUsage === "limited"
-                    ? "border-2 border-blue-500 bg-blue-500/40 "
-                    : "bg-white border-2 border-gray-500"
+                    ? "border-2 border-black bg-black text-white"
+                    : "bg-white border-2 border-gray-500 text-black"
                 } px-4 py-2 rounded-md`}
                 onClick={() => setTypeOfUsage("limited")}
               >
@@ -179,8 +179,8 @@ const CreateCodePromoForm = () => {
               <button
                 className={`${
                   typeOfUsage === "unlimited"
-                    ? "border-2 border-blue-500 bg-blue-500/40 "
-                    : "bg-white border-2 border-gray-500"
+                    ? "border-2 border-black bg-black text-white"
+                    : "bg-white border-2 border-gray-500 text-black"
                 } px-4 py-2 rounded-md`}
                 onClick={() => setTypeOfUsage("unlimited")}
               >
@@ -193,7 +193,7 @@ const CreateCodePromoForm = () => {
                 id="limitedUsage"
                 value={usagePerUser}
                 onChange={(e) => setUsagePerUser(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand"
               />
             )}
           </div>
@@ -208,8 +208,8 @@ const CreateCodePromoForm = () => {
               <button
                 className={`${
                   typeOfTotalUsage === "limited"
-                    ? "border-2 border-blue-500 bg-blue-500/40 "
-                    : "bg-white border-2 border-gray-500"
+                    ? "border-2 border-black bg-black text-white"
+                    : "bg-white border-2 border-gray-500 text-black"
                 } px-4 py-2 rounded-md`}
                 onClick={() => setTypeOfTotalUsage("limited")}
               >
@@ -219,8 +219,8 @@ const CreateCodePromoForm = () => {
               <button
                 className={`${
                   typeOfTotalUsage === "unlimited"
-                    ? "border-2 border-blue-500 bg-blue-500/40 "
-                    : "bg-white border-2 border-gray-500"
+                    ? "border-2 border-black bg-black text-white"
+                    : "bg-white border-2 border-gray-500 text-black"
                 } px-4 py-2 rounded-md`}
                 onClick={() => setTypeOfTotalUsage("unlimited")}
               >
@@ -233,7 +233,7 @@ const CreateCodePromoForm = () => {
                 id="limitedTotalUsage"
                 value={totalUsage}
                 onChange={(e) => setTotalUsage(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand"
               />
             )}
           </div>
@@ -249,7 +249,7 @@ const CreateCodePromoForm = () => {
               id="endDate"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand"
             />
           </div>
 
@@ -258,7 +258,7 @@ const CreateCodePromoForm = () => {
               type="button"
               onClick={handleCreate}
               disabled={creating}
-              className="bg-blue-500 text-white px-6 py-2 rounded  transition font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="bg-black text-white px-6 py-2 rounded transition font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {creating ? "Création..." : "Créer le code"}
             </button>

@@ -125,7 +125,7 @@ const DashboardContent = () => {
         <input
           type="text"
           placeholder="Rechercher par code ou utilisateur..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -133,7 +133,7 @@ const DashboardContent = () => {
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
         >
           <option value="tous">Tous</option>
           <option value="matchs">Billets</option>
@@ -150,7 +150,7 @@ const DashboardContent = () => {
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -161,7 +161,7 @@ const DashboardContent = () => {
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -207,7 +207,7 @@ const DashboardContent = () => {
 
       <div className="bg-white shadow-lg rounded-lg h-[calc(100vh-100px)] overflow-scroll">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-blue-600 text-white">
+          <thead className="bg-brand text-black">
             <tr>
               <th className="px-6 py-3 text-sm font-medium">Code</th>
               <th className="px-6 py-3 text-sm font-medium">Type</th>
@@ -260,7 +260,7 @@ const DashboardContent = () => {
                   <td className="px-6 py-4 flex space-x-5 items-center">
                     <Link
                       href={`/tableau-de-bord/commandes/${order.code}`}
-                      className="text-green-600 hover:text-green-800 cursor-pointer"
+                      className="text-black hover:text-gray-700 cursor-pointer"
                     >
                       <IoEyeSharp size={22} />
                     </Link>

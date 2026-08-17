@@ -142,7 +142,7 @@ const TicketsContent = () => {
         <input
           type="text"
           placeholder="Rechercher un billet par code ou nom d'utilisateur..."
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -150,7 +150,7 @@ const TicketsContent = () => {
           <div className="">
             <select
               id="matchFilter"
-              className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
               value={selectedMatch}
               onChange={(e) => setSelectedMatch(e.target.value)}
             >
@@ -187,7 +187,7 @@ const TicketsContent = () => {
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -198,7 +198,7 @@ const TicketsContent = () => {
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
 
@@ -208,7 +208,7 @@ const TicketsContent = () => {
             id="type"
             value={ticketStatus}
             onChange={(e) => setTicketStatus(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           >
             <option value="tous">Tous</option>
             <option value="true">Utilisé</option>
@@ -234,7 +234,7 @@ const TicketsContent = () => {
 
       <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-blue-600 text-white">
+          <thead className="bg-brand text-black">
             <tr>
               <th className="px-6 py-3 text-sm font-medium">Code</th>
               <th className="px-6 py-3 text-sm font-medium">Utilisateur</th>
@@ -284,7 +284,7 @@ const TicketsContent = () => {
                     <a
                       target="_blank"
                       href={ticket.downloadUrl}
-                      className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition"
+                      className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
                     >
                       Voir le billet
                     </a>

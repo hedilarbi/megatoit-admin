@@ -62,7 +62,7 @@ const AddAccount = () => {
         <div className="flex  items-center mb-6 space-x-4">
           <Link
             href="/comptes"
-            className="bg-blue-600 text-white rounded-full p-3 flex justify-center items-center"
+            className="bg-black text-white rounded-full p-3 flex justify-center items-center hover:bg-gray-800"
           >
             <FaArrowLeftLong className="" />
           </Link>
@@ -87,7 +87,7 @@ const AddAccount = () => {
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
             placeholder="Entrez votre nom et prénom"
           />
         </div>
@@ -103,7 +103,7 @@ const AddAccount = () => {
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
             placeholder="Entrez votre email"
           />
         </div>
@@ -119,7 +119,7 @@ const AddAccount = () => {
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
             placeholder="Entrez votre mot de passe"
           />
         </div>
@@ -133,7 +133,7 @@ const AddAccount = () => {
           <input
             type="password"
             id="confirmPassword"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
             placeholder="Confirmez votre mot de passe"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -143,7 +143,7 @@ const AddAccount = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          className="w-full bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black"
         >
           {loading ? "Création en cours..." : "Créer le compte"}
         </button>

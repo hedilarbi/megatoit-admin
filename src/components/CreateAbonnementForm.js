@@ -85,7 +85,7 @@ const CreateAbonnementForm = () => {
                 name="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
                 placeholder="Ex: Hockey Team"
               />
             </div>
@@ -105,7 +105,7 @@ const CreateAbonnementForm = () => {
                 name="startYear"
                 value={startYear}
                 onChange={(e) => setStartYear(e.target.value)}
-                className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
                 placeholder="Ex: 2026"
               />
               <span className="p-3 mt-1">-</span>
@@ -115,7 +115,7 @@ const CreateAbonnementForm = () => {
                 name="endYear"
                 value={endYear}
                 onChange={(e) => setEndYear(e.target.value)}
-                className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="p-3 mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
                 placeholder="Ex: 2027"
               />
             </div>
@@ -134,7 +134,7 @@ const CreateAbonnementForm = () => {
               name="ticketPrice"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
               placeholder="Ex: 20.00"
             />
           </div>
@@ -152,7 +152,7 @@ const CreateAbonnementForm = () => {
               name="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="p-3 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
               placeholder=""
             />
           </div>
@@ -160,7 +160,7 @@ const CreateAbonnementForm = () => {
         <div>
           <button
             onClick={handleSubmit}
-            className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
           >
             Créer l&apos;abonnement
           </button>

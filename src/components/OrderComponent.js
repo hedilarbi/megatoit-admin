@@ -150,7 +150,7 @@ const OrderComponent = ({ code }) => {
                 </div>
                 <div className="flex-1">
                   <p className="text-gray-700 mb-2">
-                    <strong>Match:</strong> Megatoit vs{" "}
+                    <strong>Match:</strong> BSR DE TROIS-RIVIÈRES vs{" "}
                     {order.matchDetails.opponent.name}
                   </p>
                   <p className="text-gray-700 mb-2">
@@ -159,7 +159,7 @@ const OrderComponent = ({ code }) => {
                   </p>
                   <Link
                     href={ticket.downloadUrl}
-                    className="bg-blue-500 text-white rounded-md py-2 px-4 hover:underline"
+                    className="bg-black text-white rounded-md py-2 px-4 hover:bg-gray-800 transition inline-block"
                     target="_blank"
                   >
                     Voir le billet
@@ -177,7 +177,7 @@ const OrderComponent = ({ code }) => {
             <div className="flex ">
               <div className="flex-1">
                 <p className="text-gray-700 mb-2">
-                  <strong>Match:</strong> Megatoit vs{" "}
+                  <strong>Match:</strong> BSR DE TROIS-RIVIÈRES vs{" "}
                   {order.matchDetails.opponent.name}
                 </p>
                 <p className="text-gray-700 mb-2">
@@ -217,7 +217,7 @@ const OrderComponent = ({ code }) => {
                 </p>
                 <Link
                   href={`${order.subscriptionDetails.downloadUrl}`}
-                  className="bg-blue-500 text-white rounded-md py-2 px-4 hover:underline"
+                  className="bg-black text-white rounded-md py-2 px-4 hover:bg-gray-800 transition inline-block"
                   target="_blank"
                 >
                   Voir l&apos;abonnement

@@ -147,7 +147,7 @@ const CodePromoContent = () => {
 
       <div className="bg-white shadow-lg rounded-lg  h-[calc(100vh-200px)]  overflow-scroll">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-blue-600 text-white">
+          <thead className="bg-brand text-black">
             <tr>
               <th className="px-6 py-3 text-sm font-medium">Code</th>
               <th className="px-6 py-3 text-sm font-medium">Type</th>

@@ -46,7 +46,7 @@ const fmtFRDate = (d) =>
     year: "numeric",
   }).format(d);
 
-const FROM_EMAIL = '"Mégatoit" <billets@lemegatoit.com>';
+const FROM_EMAIL = '"BSR DE TROIS-RIVIÈRES" <billets@bsr3r.com>';
 
 // Helper to safely read Timestamp | Date | string to Date
 function toDate(value) {
@@ -132,20 +132,20 @@ export async function POST(request) {
           to: email,
           from: FROM_EMAIL,
           subject:
-            "Lien(s) de téléchargement de vos billets - Mégatoit vs Donnacona",
+            "Lien(s) de téléchargement de vos billets - BSR DE TROIS-RIVIÈRES vs Donnacona",
           ticketLinks,
           createdAtFR,
         });
 
         // Build email content (FR)
         const subject =
-          "Lien(s) de téléchargement de vos billets - Mégatoit vs Donnacona";
+          "Lien(s) de téléchargement de vos billets - BSR DE TROIS-RIVIÈRES vs Donnacona";
 
         const linksHtml =
           ticketLinks.length > 0
             ? `<ul>${ticketLinks
-                .map((l) => `<li><a href="${l}">${l}</a></li>`)
-                .join("")}</ul>`
+              .map((l) => `<li><a href="${l}">${l}</a></li>`)
+              .join("")}</ul>`
             : "<p>(Aucun lien de billet trouvé pour cette commande)</p>";
 
         const linksText =
@@ -154,32 +154,32 @@ export async function POST(request) {
             : "(Aucun lien de billet trouvé pour cette commande)";
 
         const html = `
-        <p>Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match <strong>Mégatoit Vs Donnacona</strong> que vous avez effectué le <strong>${createdAtFR}</strong>.</p>
+        <p>Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match <strong>BSR DE TROIS-RIVIÈRES Vs Donnacona</strong> que vous avez effectué le <strong>${createdAtFR}</strong>.</p>
 
         <p><strong>Lien(s) du/des billet(s) :</strong></p>
          ${linksHtml}
 
         <p>Si vous ne les avez pas reçus, il vous est également possible de les consulter et de les télécharger directement à partir de votre profil sur notre site web :</p>
-     <p><a href="https://www.lemegatoit.com" target="_blank" rel="noopener">www.lemegatoit.com</a></p>
+     <p><a href="https://www.bsr3r.com" target="_blank" rel="noopener">www.bsr3r.com</a></p>
 
          <p>Nous vous remercions de votre fidélité et avons hâte de vous accueillir lors du prochain match.</p>
 
         <p>Cordialement,<br/>
-         L’équipe du Mégatoit de Trois-Rivières</p>
+         L’équipe du BSR DE TROIS-RIVIÈRES</p>
                  `.trim();
 
         const text = `
-         Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match Mégatoit Vs Donnacona que vous avez effectué le ${createdAtFR}.
+         Veuillez trouver ci-dessous le lien de téléchargement de billet pour le match BSR DE TROIS-RIVIÈRES Vs Donnacona que vous avez effectué le ${createdAtFR}.
 
          Lien(s) du/des billet(s):
          ${linksText}
 
          Si vous ne les avez pas reçus, il vous est également possible de les consulter et de les télécharger directement à partir de votre profil sur notre site web :
-         www.lemegatoit.com
+         www.bsr3r.com
 
        Nous vous remercions de votre fidélité et avons hâte de vous accueillir lors du prochain match.
       Cordialement,
-    L’équipe du Mégatoit de Trois-Rivières
+    L’équipe du BSR DE TROIS-RIVIÈRES
                `.trim();
 
         // Send the email
@@ -192,12 +192,12 @@ export async function POST(request) {
         });
 
         // // Optional: mark order that email was sent
-        await doc.ref.update({
-          ticketsEmail: {
-            sentAt: FieldValue.serverTimestamp(),
-            sentBy: decoded.uid,
-          },
-        });
+        // await doc.ref.update({
+        //   ticketsEmail: {
+        //     sentAt: FieldValue.serverTimestamp(),
+        //     sentBy: decoded.uid,
+        //   },
+        // });
 
         results.push({ orderId, emailTo: email, sent: true });
       } catch (err) {

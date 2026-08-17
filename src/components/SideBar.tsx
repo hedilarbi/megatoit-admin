@@ -100,7 +100,7 @@ const SideBar = () => {
   return (
     <aside
       id="sidebar"
-      className="h-full bg-white shadow-lg w-64"
+      className="h-full bg-black text-white shadow-lg w-64 border-r-4 border-brand"
       aria-label="Sidebar navigation"
     >
       <div className="flex flex-col h-full p-5">
@@ -132,8 +132,8 @@ const SideBar = () => {
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
                              ${
                                isActive
-                                 ? "bg-emerald-50 text-emerald-900 font-semibold"
-                                 : "text-gray-600 hover:bg-gray-100"
+                                 ? "bg-brand text-black font-semibold"
+                                 : "text-gray-300 hover:bg-white/10 hover:text-brand"
                              }`}
               >
                 {item.icon}
@@ -145,10 +145,10 @@ const SideBar = () => {
 
         {/* Logout Section */}
         <div className="mt-auto pb-8">
-          <div className="h-px bg-gray-200 w-full my-4" />
+          <div className="h-px bg-brand/40 w-full my-4" />
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-gray-300 hover:bg-brand-dark hover:text-black transition-colors"
             aria-label="Logout from application"
           >
             <IoLogOut />

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LE MÉGATOIT",
+  title: "BSR DE TROIS-RIVIÈRES",
   description: "La plateforme de gestion de la billetterie",
 };
 

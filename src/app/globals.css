@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+@theme inline {
+  --color-brand: #7bfd48;
+  --color-brand-dark: #55d824;
+}
+
+:root {
+  --brand: #7bfd48;
+  --brand-dark: #55d824;
+}
+
+::selection {
+  background: var(--brand);
+  color: #000;
+}
+
+:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 3px;
+}
