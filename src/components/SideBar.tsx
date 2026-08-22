@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { FaRegIdCard, FaTicketAlt } from "react-icons/fa";
-import { MdDashboard } from "react-icons/md";
+import { MdDashboard, MdEmail } from "react-icons/md";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
@@ -61,6 +61,13 @@ const navItems: NavItem[] = [
     matchPattern: /^\/code-promotion(\/.*)?$/, // Matches /patients and /patients/[id]
   },
 
+  {
+    label: "Messagerie",
+    href: "/messagerie",
+    icon: <MdEmail />,
+    ariaLabel: "Navigate to messagerie",
+    matchPattern: /^\/messagerie(\/.*)?$/,
+  },
   {
     label: "Utilisateurs",
     href: "/utilisateurs",
