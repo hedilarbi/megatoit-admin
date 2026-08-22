@@ -60,6 +60,14 @@ const bool = (value, fallback) => {
 /* Comptes                                                             */
 /* ------------------------------------------------------------------ */
 
+// Nom affiché par défaut pour chaque boîte. Les variables MAIL_<ID>_FROM_NAME restent
+// prioritaires ; ces valeurs évitent qu'un déploiement sans ces variables retombe sur un
+// nom générique identique pour toutes les boîtes.
+const DEFAULT_FROM_NAMES = {
+  info: "INFO BSR",
+  billets: "Billetterie BSR",
+};
+
 function accountIds() {
   return String(process.env.MAIL_ACCOUNTS || "info,billets")
     .split(",")
@@ -83,7 +91,7 @@ function buildAccount(id, isPrimary) {
     id,
     address,
     label: get("LABEL") || address,
-    fromName: get("FROM_NAME") || "BSR DE TROIS-RIVIÈRES",
+    fromName: get("FROM_NAME") || DEFAULT_FROM_NAMES[id] || "BSR DE TROIS-RIVIÈRES",
     configured: Boolean(imapHost && imapPass),
     imap: {
       host: imapHost,

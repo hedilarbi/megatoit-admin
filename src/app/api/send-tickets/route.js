@@ -46,7 +46,7 @@ const fmtFRDate = (d) =>
     year: "numeric",
   }).format(d);
 
-const FROM_EMAIL = '"BSR DE TROIS-RIVIÈRES" <billets@bsr3r.com>';
+const FROM_EMAIL = '"Billetterie BSR" <billets@bsr3r.com>';
 
 // Helper to safely read Timestamp | Date | string to Date
 function toDate(value) {
