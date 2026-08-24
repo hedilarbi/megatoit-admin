@@ -12,6 +12,7 @@ import {
   FiMail,
   FiEyeOff,
   FiX,
+  FiEdit,
 } from "react-icons/fi";
 
 import Spinner from "./spinner/Spinner";
@@ -287,27 +288,14 @@ const PendingCard = ({ entry, mailbox, onRetry, onDiscard }) => (
   </article>
 );
 
-const ReplyBox = ({ draft, threadId, maxAttachmentBytes, onSend }) => {
-  const [open, setOpen] = useState(false);
-  const [to, setTo] = useState("");
-  const [cc, setCc] = useState("");
-  const [subject, setSubject] = useState("");
-  const [text, setText] = useState("");
+/** Sélection de pièces jointes, partagée entre la réponse et le nouveau message. */
+const useAttachments = (maxAttachmentBytes) => {
   const [files, setFiles] = useState([]);
-  const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    setOpen(false);
-    setText("");
-    setFiles([]);
-    setTo((draft?.to || []).map((person) => person.address).join(", "));
-    setCc((draft?.cc || []).map((person) => person.address).join(", "));
-    setSubject(draft?.subject || "");
-  }, [draft, threadId]);
+  const inputRef = useRef(null);
 
   const attachedSize = files.reduce((sum, file) => sum + file.size, 0);
 
-  const handlePickFiles = (event) => {
+  const pick = (event) => {
     const picked = Array.from(event.target.files || []);
     // Un même fichier ne doit pas être joint deux fois.
     const merged = [...files];
@@ -336,8 +324,220 @@ const ReplyBox = ({ draft, threadId, maxAttachmentBytes, onSend }) => {
     event.target.value = "";
   };
 
-  const removeFile = (index) =>
+  const remove = (index) =>
     setFiles((current) => current.filter((_, position) => position !== index));
+
+  const tooLarge = attachedSize > maxAttachmentBytes;
+
+  return { files, setFiles, attachedSize, tooLarge, inputRef, pick, remove };
+};
+
+/** Pastilles des fichiers joints, avec retrait. */
+const AttachmentChips = ({ files, onRemove }) =>
+  files.length === 0 ? null : (
+    <ul className="mt-2 flex flex-wrap gap-2">
+      {files.map((file, index) => (
+        <li
+          key={`${file.name}-${file.size}-${file.lastModified}`}
+          className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700"
+        >
+          <FiPaperclip className="shrink-0" />
+          <span className="max-w-[200px] truncate">{file.name}</span>
+          <span className="text-gray-400">{formatSize(file.size)}</span>
+          <button
+            type="button"
+            onClick={() => onRemove(index)}
+            aria-label={`Retirer ${file.name}`}
+            className="text-gray-400 transition-colors hover:text-red-600"
+          >
+            <FiX />
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+
+/** Bouton « Joindre un fichier » + son champ masqué. */
+const AttachmentButton = ({ inputRef, onPick, files, attachedSize }) => (
+  <>
+    <input ref={inputRef} type="file" multiple onChange={onPick} className="hidden" />
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-700 transition-colors hover:border-brand hover:text-black"
+    >
+      <FiPaperclip />
+      Joindre un fichier
+    </button>
+    {files.length > 0 && (
+      <span className="text-xs text-gray-500">
+        {files.length} fichier{files.length > 1 ? "s" : ""} · {formatSize(attachedSize)}
+      </span>
+    )}
+  </>
+);
+
+/** Rédaction d'un nouveau message, sans discussion parente. */
+const ComposeModal = ({ mailbox, maxAttachmentBytes, onSend, onClose }) => {
+  const [to, setTo] = useState("");
+  const [cc, setCc] = useState("");
+  const [subject, setSubject] = useState("");
+  const [text, setText] = useState("");
+  const { files, attachedSize, tooLarge, inputRef, pick, remove } =
+    useAttachments(maxAttachmentBytes);
+
+  const dirtyRef = useRef(false);
+  dirtyRef.current = Boolean(
+    to.trim() || cc.trim() || subject.trim() || text.trim() || files.length
+  );
+
+  // Ne jamais jeter un message commencé sans demander.
+  const requestClose = useCallback(() => {
+    if (dirtyRef.current && !window.confirm("Abandonner ce message ?")) return;
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    const onKey = (event) => {
+      if (event.key === "Escape") requestClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [requestClose]);
+
+  const submit = (event) => {
+    event.preventDefault();
+    const recipients = parseAddresses(to);
+    if (!recipients.length) {
+      toast.error("Ajoutez au moins un destinataire.");
+      return;
+    }
+    if (!subject.trim()) {
+      toast.error("Ajoutez un objet.");
+      return;
+    }
+    if (!text.trim()) {
+      toast.error("Le message est vide.");
+      return;
+    }
+    if (tooLarge) {
+      toast.error(
+        `Pièces jointes trop volumineuses (maximum ${formatSize(maxAttachmentBytes)}).`
+      );
+      return;
+    }
+
+    // Aucun threadId ni inReplyTo : c'est une nouvelle conversation.
+    onSend(
+      { to: recipients, cc: parseAddresses(cc), subject, text },
+      files
+    );
+    onClose();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={requestClose}
+      role="presentation"
+    >
+      <form
+        onSubmit={submit}
+        onClick={(event) => event.stopPropagation()}
+        className="flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
+      >
+        <header className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold text-gray-900">Nouveau message</h2>
+            <p className="truncate text-xs text-gray-500">De : {mailbox}</p>
+          </div>
+          <button
+            type="button"
+            onClick={requestClose}
+            aria-label="Fermer"
+            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <FiX />
+          </button>
+        </header>
+
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-6 py-4">
+          <label className="flex items-center gap-3 text-sm">
+            <span className="w-14 shrink-0 text-gray-500">À</span>
+            <input
+              value={to}
+              onChange={(event) => setTo(event.target.value)}
+              placeholder="destinataire@exemple.com"
+              autoFocus
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-brand"
+            />
+          </label>
+          <label className="flex items-center gap-3 text-sm">
+            <span className="w-14 shrink-0 text-gray-500">Cc</span>
+            <input
+              value={cc}
+              onChange={(event) => setCc(event.target.value)}
+              placeholder="Optionnel"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-brand"
+            />
+          </label>
+          <label className="flex items-center gap-3 text-sm">
+            <span className="w-14 shrink-0 text-gray-500">Objet</span>
+            <input
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-brand"
+            />
+          </label>
+          <textarea
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            rows={10}
+            placeholder="Écrivez votre message…"
+            className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand"
+          />
+          <AttachmentChips files={files} onRemove={remove} />
+        </div>
+
+        <footer className="flex items-center gap-3 border-t border-gray-200 px-6 py-4">
+          <button
+            type="submit"
+            className="flex items-center gap-2 rounded-lg bg-brand px-5 py-3 font-semibold text-black transition-colors hover:bg-brand-dark"
+          >
+            <FiSend />
+            Envoyer
+          </button>
+          <AttachmentButton
+            inputRef={inputRef}
+            onPick={pick}
+            files={files}
+            attachedSize={attachedSize}
+          />
+        </footer>
+      </form>
+    </div>
+  );
+};
+
+const ReplyBox = ({ draft, threadId, maxAttachmentBytes, onSend }) => {
+  const [open, setOpen] = useState(false);
+  const [to, setTo] = useState("");
+  const [cc, setCc] = useState("");
+  const [subject, setSubject] = useState("");
+  const [text, setText] = useState("");
+  const { files, setFiles, attachedSize, tooLarge, inputRef, pick, remove } =
+    useAttachments(maxAttachmentBytes);
+
+  useEffect(() => {
+    setOpen(false);
+    setText("");
+    setFiles([]);
+    setTo((draft?.to || []).map((person) => person.address).join(", "));
+    setCc((draft?.cc || []).map((person) => person.address).join(", "));
+    setSubject(draft?.subject || "");
+    // setFiles vient de useState : sa référence ne change jamais.
+  }, [draft, threadId, setFiles]);
+
 
   // L'envoi part en arrière-plan : le formulaire se ferme tout de suite et le
   // message apparaît dans la conversation avec l'état « Envoi… ». Une erreur
@@ -353,7 +553,7 @@ const ReplyBox = ({ draft, threadId, maxAttachmentBytes, onSend }) => {
       toast.error("Le message est vide.");
       return;
     }
-    if (attachedSize > maxAttachmentBytes) {
+    if (tooLarge) {
       toast.error(
         `Pièces jointes trop volumineuses (maximum ${formatSize(maxAttachmentBytes)}).`
       );
@@ -434,28 +634,7 @@ const ReplyBox = ({ draft, threadId, maxAttachmentBytes, onSend }) => {
         />
       </div>
 
-      {files.length > 0 && (
-        <ul className="mt-2 flex flex-wrap gap-2">
-          {files.map((file, index) => (
-            <li
-              key={`${file.name}-${file.size}-${file.lastModified}`}
-              className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700"
-            >
-              <FiPaperclip className="shrink-0" />
-              <span className="max-w-[200px] truncate">{file.name}</span>
-              <span className="text-gray-400">{formatSize(file.size)}</span>
-              <button
-                type="button"
-                onClick={() => removeFile(index)}
-                aria-label={`Retirer ${file.name}`}
-                className="text-gray-400 transition-colors hover:text-red-600"
-              >
-                <FiX />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <AttachmentChips files={files} onRemove={remove} />
 
       <div className="mt-3 flex items-center gap-3">
         <button
@@ -466,27 +645,12 @@ const ReplyBox = ({ draft, threadId, maxAttachmentBytes, onSend }) => {
           Envoyer
         </button>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          onChange={handlePickFiles}
-          className="hidden"
+        <AttachmentButton
+          inputRef={inputRef}
+          onPick={pick}
+          files={files}
+          attachedSize={attachedSize}
         />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-700 transition-colors hover:border-brand hover:text-black"
-        >
-          <FiPaperclip />
-          Joindre un fichier
-        </button>
-
-        {files.length > 0 && (
-          <span className="text-xs text-gray-500">
-            {files.length} fichier{files.length > 1 ? "s" : ""} · {formatSize(attachedSize)}
-          </span>
-        )}
         <button
           type="button"
           onClick={() => setOpen(false)}
@@ -513,6 +677,7 @@ const MessagerieContent = () => {
   const [selection, setSelection] = useState(null);
   const [account, setAccount] = useState(null);
   const [outbox, setOutbox] = useState([]);
+  const [composing, setComposing] = useState(false);
 
   const [filter, setFilter] = useState("all");
   const [searchInput, setSearchInput] = useState("");
@@ -650,6 +815,7 @@ const MessagerieContent = () => {
           setOutbox((current) => current.filter((entry) => entry.id !== id));
           toast.success("Réponse envoyée.");
           if (payload.threadId) refreshAfterSend(payload.threadId);
+          else loadThreadsRef.current?.({ refresh: true, silent: true });
         })
         .catch((error) => {
           setOutbox((current) =>
@@ -749,6 +915,15 @@ const MessagerieContent = () => {
       {/* Liste des discussions */}
       <section className="flex w-[380px] shrink-0 flex-col border-r border-gray-200">
         <div className="border-b border-gray-200 p-4">
+          <button
+            type="button"
+            onClick={() => setComposing(true)}
+            className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-black px-4 py-3 font-semibold text-brand transition-colors hover:bg-gray-800"
+          >
+            <FiEdit />
+            Nouveau message
+          </button>
+
           {accounts.length > 1 && (
             <div className="mb-3 flex gap-1 rounded-lg bg-gray-100 p-1">
               {accounts.map((item) => {
@@ -838,6 +1013,48 @@ const MessagerieContent = () => {
             })}
           </div>
         </div>
+
+        {/* Un nouveau message n'appartient à aucune discussion : son état
+            s'affiche ici plutôt que dans le fil. */}
+        {outbox
+          .filter((entry) => !entry.threadId && entry.account === account)
+          .map((entry) => (
+            <div
+              key={entry.id}
+              className={`border-b px-4 py-3 text-xs ${
+                entry.error
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-gray-100 bg-brand/5 text-gray-600"
+              }`}
+            >
+              <p className="truncate font-semibold">
+                {entry.error ? "Échec de l'envoi" : "Envoi en cours…"} —{" "}
+                {entry.payload.subject || "(sans objet)"}
+              </p>
+              <p className="truncate">À : {entry.payload.to.join(", ")}</p>
+              {entry.error && (
+                <>
+                  <p className="mt-1">{entry.error}</p>
+                  <div className="mt-2 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => retrySend(entry.id)}
+                      className="rounded bg-black px-3 py-1 font-semibold text-brand"
+                    >
+                      Réessayer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => discardSend(entry.id)}
+                      className="text-gray-500 hover:text-gray-900"
+                    >
+                      Abandonner
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
 
         <div className="min-h-0 flex-1 overflow-y-auto">
           {listLoading && (
@@ -1024,6 +1241,15 @@ const MessagerieContent = () => {
           </>
         )}
       </section>
+
+      {composing && (
+        <ComposeModal
+          mailbox={mailbox}
+          maxAttachmentBytes={maxAttachmentBytes}
+          onSend={handleSend}
+          onClose={() => setComposing(false)}
+        />
+      )}
     </div>
   );
 };
