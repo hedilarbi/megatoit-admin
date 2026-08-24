@@ -110,6 +110,12 @@ const OrderComponent = ({ code }) => {
                 <strong>Nombre de billets:</strong> {order.tickets.length}
               </p>
             )}
+            {order.abonnementId && (
+              <p className="text-gray-700 mb-2">
+                <strong>Nombre d&apos;abonnements:</strong>{" "}
+                {order.quantity || order.subscriptionsDetails?.length || 1}
+              </p>
+            )}
             {order.promoCodeId && order.promoCodeDetails && (
               <p className="text-gray-700 mb-2">
                 <strong>Code promo utilisé:</strong>{" "}
@@ -198,7 +204,7 @@ const OrderComponent = ({ code }) => {
       {order.abonnementDetails && (
         <div className="mt-4">
           <h2 className="text-2xl font-bold mb-4">
-            Détails de l&apos;abonnement
+            Détails {order.subscriptionsDetails?.length > 1 ? "des abonnements" : "de l’abonnement"}
           </h2>
           <div className="bg-white shadow-md rounded-lg p-6">
             <div className="flex ">
@@ -215,14 +221,45 @@ const OrderComponent = ({ code }) => {
                 <p className="text-gray-700 mb-2">
                   <strong>Saison :</strong> {order.abonnementDetails.season}
                 </p>
-                <Link
-                  href={`${order.subscriptionDetails.downloadUrl}`}
-                  className="bg-black text-white rounded-md py-2 px-4 hover:bg-gray-800 transition inline-block"
-                  target="_blank"
-                >
-                  Voir l&apos;abonnement
-                </Link>
               </div>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {(order.subscriptionsDetails?.length
+                ? order.subscriptionsDetails
+                : order.subscriptionDetails
+                  ? [order.subscriptionDetails]
+                  : []
+              ).map((subscription, index) => (
+                <div
+                  key={subscription.id || subscription.code || index}
+                  className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="font-semibold text-gray-800">
+                      Abonnement {index + 1}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Code : {subscription.code || "-"}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Statut : {subscription.isActive === false ? "Inactif" : "Actif"}
+                    </p>
+                  </div>
+                  {subscription.downloadUrl ? (
+                    <Link
+                      href={subscription.downloadUrl}
+                      className="bg-black text-white rounded-md py-2 px-4 hover:bg-gray-800 transition inline-block text-center"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Voir l&apos;abonnement
+                    </Link>
+                  ) : (
+                    <span className="text-sm text-gray-500">PDF indisponible</span>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>

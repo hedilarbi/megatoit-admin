@@ -229,7 +229,11 @@ const DashboardContent = () => {
                       {order.userDetails?.userName || "-"}
                     </td>
                     <td className="px-6 py-4 text-gray-700">
-                      {order.matchId ? (Array.isArray(order.tickets) ? order.tickets.length : 1) : "1"}
+                      {order.matchId
+                        ? Array.isArray(order.tickets)
+                          ? order.tickets.length
+                          : order.quantity || 1
+                        : order.quantity || order.subscriptionIds?.length || 1}
                     </td>
                     <td className="px-6 py-4 text-gray-700">
                       {formatDate(order.createdAt)}

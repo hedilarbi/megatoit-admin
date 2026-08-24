@@ -222,17 +222,21 @@ export const getOrderByCode = async (code) => {
       }
     }
 
-    // Populate subscription details if subscriptionId exists
-    if (orderData.subscriptionId) {
-      const subscriptionDocRef = doc(
-        db,
-        "subscriptions",
-        orderData.subscriptionId
-      );
-      const subscriptionDoc = await getDoc(subscriptionDocRef);
-      if (subscriptionDoc.exists()) {
-        orderData.subscriptionDetails = subscriptionDoc.data();
-      }
+    // New orders contain every subscription ID. Keep the legacy singular field
+    // as a fallback for orders created before multi-subscription purchases.
+    const subscriptionIds = Array.isArray(orderData.subscriptionIds) &&
+      orderData.subscriptionIds.length > 0
+      ? orderData.subscriptionIds
+      : orderData.subscriptionId
+        ? [orderData.subscriptionId]
+        : [];
+
+    if (subscriptionIds.length > 0) {
+      const subscriptionsById = await fetchByIds("subscriptions", subscriptionIds);
+      orderData.subscriptionsDetails = subscriptionIds
+        .map((subscriptionId) => subscriptionsById.get(String(subscriptionId)))
+        .filter(Boolean);
+      orderData.subscriptionDetails = orderData.subscriptionsDetails[0] || null;
     }
 
     return orderData;

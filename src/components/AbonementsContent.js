@@ -220,7 +220,7 @@ const AbonementsContent = () => {
                         className="bg-black text-white px-3 py-2 rounded-lg shadow-md flex items-center gap-2 hover:bg-gray-800 transition"
                         target="_blank"
                       >
-                        Voir l&apos;abonnement
+                        Voir la commande
                       </Link>
                     </td>
                   </tr>
