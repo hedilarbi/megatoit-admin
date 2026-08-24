@@ -6,6 +6,11 @@ import Image from "next/image";
 import { WarningIcon } from "@/assets/svgs";
 import Link from "next/link";
 
+const formatMoney = (value) => {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount.toFixed(2) : "0.00";
+};
+
 const OrderComponent = ({ code }) => {
   const [order, setOrder] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -98,7 +103,7 @@ const OrderComponent = ({ code }) => {
               <strong>Date d&apos;achat :</strong> {formatDate(order.createdAt)}
             </p>
             <p className="text-gray-700 mb-2">
-              <strong>Total:</strong> ${(order.amount / 100).toFixed(2)}
+              <strong>Total:</strong> ${formatMoney(Number(order.amount) / 100)}
             </p>
           </div>
           <div className="flex-1">
@@ -151,7 +156,7 @@ const OrderComponent = ({ code }) => {
                     <strong>Achété le :</strong> {formatDate(ticket.createdAt)}
                   </p>
                   <p className="text-gray-700 mb-2">
-                    <strong>Prix (HT) :</strong> ${ticket.price.toFixed(2)}
+                    <strong>Prix (HT) :</strong> ${formatMoney(ticket.price)}
                   </p>
                 </div>
                 <div className="flex-1">
@@ -214,7 +219,7 @@ const OrderComponent = ({ code }) => {
                 </p>
                 <p className="text-gray-700 mb-2">
                   <strong>Prix (HT):</strong> $
-                  {order.abonnementDetails.price.toFixed(2)}
+                  {formatMoney(order.abonnementDetails.price)}
                 </p>
               </div>
               <div className="flex-1">
