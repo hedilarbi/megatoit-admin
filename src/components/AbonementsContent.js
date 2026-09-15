@@ -5,10 +5,50 @@ import Spinner from "./spinner/Spinner";
 import { WarningIcon } from "@/assets/svgs";
 import Image from "next/image";
 import Link from "next/link";
+import toast from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
 import { getSubscriptionsPaginated } from "@/services/abonement.service";
 import Pagination from "./Pagination";
 
 const AbonementsContent = () => {
+  const { user } = useAuth();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createData, setCreateData] = useState({ fullName: "", email: "" });
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreateAbonnement = async (e) => {
+    e.preventDefault();
+    if (!createData.fullName || !createData.email) {
+      toast.error("Veuillez remplir tous les champs");
+      return;
+    }
+    try {
+      setIsCreating(true);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_CLIENT_URL || "http://localhost:3000"}/api/admin-create-free-abonnement`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-key": process.env.NEXT_PUBLIC_ADMIN_API_KEY || "my-super-secret-admin-key-2026",
+        },
+        body: JSON.stringify({ ...createData, adminId: user?.uid }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Billet de saison créé et envoyé avec succès !");
+        setShowCreateModal(false);
+        setCreateData({ fullName: "", email: "" });
+        fetchData(1, itemsPerPage); // Actualiser la liste
+      } else {
+        toast.error(data.error || "Erreur lors de la création.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur de connexion au serveur.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const [abonnements, setAbonnements] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -122,14 +162,20 @@ const AbonementsContent = () => {
 
   return (
     <>
-      <div className="mb-4">
+      <div className="flex justify-between items-center mb-4 gap-4">
         <input
           type="text"
           placeholder="Rechercher un abonnement par code ou par nom d'utilisateur..."
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand"
           onChange={(e) => setSearchTerm(e.target.value)}
           value={searchTerm}
         />
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="px-4 py-2 bg-brand text-black font-semibold rounded-lg shadow-md hover:opacity-90 transition"
+        >
+          Créer un billet de saison
+        </button>
       </div>
       <div className="flex items-center gap-4 mb-4">
         <div className="flex gap-2 items-center">
@@ -242,6 +288,55 @@ const AbonementsContent = () => {
           }}
         />
       </div>
+
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Créer un billet de saison</h2>
+            <form onSubmit={handleCreateAbonnement}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">Nom complet</label>
+                <input
+                  type="text"
+                  required
+                  value={createData.fullName}
+                  onChange={(e) => setCreateData({ ...createData, fullName: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+                  placeholder="Jean Dupont"
+                />
+              </div>
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-1">Adresse courriel</label>
+                <input
+                  type="email"
+                  required
+                  value={createData.email}
+                  onChange={(e) => setCreateData({ ...createData, email: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+                  placeholder="jean.dupont@example.com"
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+                  disabled={isCreating}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="px-4 py-2 bg-brand text-black font-semibold rounded-lg shadow-md hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center"
+                >
+                  {isCreating ? "Création..." : "Créer le billet"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 };
