@@ -30,6 +30,7 @@ const UtilisateursContent = () => {
         pageSize,
         cursorDoc,
         searchTerm,
+        page,
       });
 
       if (response.success) {

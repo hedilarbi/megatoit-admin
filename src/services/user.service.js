@@ -47,10 +47,32 @@ export const getUsersPaginated = async ({
   pageSize = 10,
   cursorDoc = null,
   searchTerm = "",
+  page = 1,
 }) => {
   try {
     const colRef = collection(db, "users");
     const constraints = [where("type", "==", "client")];
+
+    const q = searchTerm.trim().toLowerCase();
+    if (q) {
+      // Firestore has no "contains" query: load every client, filter, then paginate locally
+      const allSnap = await getDocs(
+        query(colRef, ...constraints, orderBy("createdAt", "desc"))
+      );
+      const matches = allSnap.docs
+        .map((d) => ({ uid: d.id, ...d.data() }))
+        .filter(
+          (u) =>
+            (u.userName || "").toLowerCase().includes(q) ||
+            (u.email || "").toLowerCase().includes(q)
+        );
+      return {
+        success: true,
+        users: matches.slice((page - 1) * pageSize, page * pageSize),
+        totalCount: matches.length,
+        lastDoc: null,
+      };
+    }
 
     const countQuery = query(colRef, ...constraints);
     const countSnap = await getCountFromServer(countQuery);
@@ -68,17 +90,8 @@ export const getUsersPaginated = async ({
     dataQueryConstraints.push(limit(pageSize));
 
     const snap = await getDocs(query(colRef, ...dataQueryConstraints));
-    let users = snap.docs.map((d) => ({ uid: d.id, ...d.data(), _doc: d }));
+    const users = snap.docs.map((d) => ({ uid: d.id, ...d.data(), _doc: d }));
     const lastDoc = snap.docs[snap.docs.length - 1] || null;
-
-    if (searchTerm.trim()) {
-      const q = searchTerm.trim().toLowerCase();
-      users = users.filter((u) => {
-        const name = (u.userName || "").toLowerCase();
-        const email = (u.email || "").toLowerCase();
-        return name.includes(q) || email.includes(q);
-      });
-    }
 
     return {
       success: true,
