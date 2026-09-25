@@ -38,6 +38,7 @@ const TicketsContent = () => {
         fromDate,
         toDate,
         ticketStatus,
+        page,
       });
 
       if (response.success) {

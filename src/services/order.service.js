@@ -81,6 +81,7 @@ export const getOrdersPaginated = async ({
   type = "tous",
   fromDate = "",
   toDate = "",
+  page = 1,
 }) => {
   try {
     const colRef = collection(db, "orders");
@@ -93,6 +94,61 @@ export const getOrdersPaginated = async ({
       constraints.push(
         where("createdAt", "<=", new Date(`${toDate}T23:59:59.999`))
       );
+    }
+
+    const q = searchTerm.trim().toLowerCase();
+    // Search/type depend on joined data, so they can't be queried in Firestore:
+    // load everything in the date range, filter, then paginate locally
+    const clientSide = !!q || type !== "tous";
+
+    const enrich = async (orders) => {
+      const userIds = new Set();
+      const promoIds = new Set();
+
+      for (const o of orders) {
+        if (o.userId) userIds.add(String(o.userId));
+        if (o.promoCodeId) promoIds.add(String(o.promoCodeId));
+      }
+
+      const [usersById, promosById] = await Promise.all([
+        fetchByIds("users", Array.from(userIds)),
+        fetchByIds("promoCodes", Array.from(promoIds)),
+      ]);
+
+      for (const o of orders) {
+        if (o.userId) o.userDetails = usersById.get(String(o.userId)) || null;
+        if (o.promoCodeId)
+          o.promotion = promosById.get(String(o.promoCodeId)) || null;
+      }
+      return orders;
+    };
+
+    if (clientSide) {
+      const allSnap = await getDocs(
+        query(colRef, ...constraints, orderBy("createdAt", "desc"))
+      );
+      let all = allSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }));
+
+      if (type !== "tous") {
+        all = all.filter((o) => (type === "matchs" ? !!o.matchId : !o.matchId));
+      }
+
+      await enrich(all);
+
+      if (q) {
+        all = all.filter(
+          (o) =>
+            (o.code || "").toLowerCase().includes(q) ||
+            (o.userDetails?.userName || "").toLowerCase().includes(q)
+        );
+      }
+
+      return {
+        success: true,
+        orders: all.slice((page - 1) * pageSize, page * pageSize),
+        totalCount: all.length,
+        lastDoc: null,
+      };
     }
 
     const countQuery = query(colRef, ...constraints);
@@ -111,43 +167,10 @@ export const getOrdersPaginated = async ({
     dataQueryConstraints.push(limit(pageSize));
 
     const ordersSnap = await getDocs(query(colRef, ...dataQueryConstraints));
-    let orders = ordersSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }));
+    const orders = await enrich(
+      ordersSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }))
+    );
     const lastDoc = ordersSnap.docs[ordersSnap.docs.length - 1] || null;
-
-    const userIds = new Set();
-    const promoIds = new Set();
-
-    for (const o of orders) {
-      if (o.userId) userIds.add(String(o.userId));
-      if (o.promoCodeId) promoIds.add(String(o.promoCodeId));
-    }
-
-    const [usersById, promosById] = await Promise.all([
-      fetchByIds("users", Array.from(userIds)),
-      fetchByIds("promoCodes", Array.from(promoIds)),
-    ]);
-
-    for (const o of orders) {
-      if (o.userId) o.userDetails = usersById.get(String(o.userId)) || null;
-      if (o.promoCodeId)
-        o.promotion = promosById.get(String(o.promoCodeId)) || null;
-    }
-
-    if (type !== "tous") {
-      orders = orders.filter((o) => {
-        const isMatch = !!o.matchId;
-        return type === "matchs" ? isMatch : !isMatch;
-      });
-    }
-
-    if (searchTerm.trim()) {
-      const q = searchTerm.trim().toLowerCase();
-      orders = orders.filter((o) => {
-        const code = (o.code || "").toLowerCase();
-        const userName = (o.userDetails?.userName || "").toLowerCase();
-        return code.includes(q) || userName.includes(q);
-      });
-    }
 
     return {
       success: true,

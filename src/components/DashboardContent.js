@@ -39,6 +39,7 @@ const DashboardContent = () => {
         type,
         fromDate,
         toDate,
+        page,
       });
 
       if (response.success) {

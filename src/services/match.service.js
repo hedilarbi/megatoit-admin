@@ -329,6 +329,7 @@ export const getTicketsPaginated = async ({
   fromDate = "",
   toDate = "",
   ticketStatus = "tous",
+  page = 1,
 }) => {
   try {
     const colRef = collection(db, "tickets");
@@ -348,6 +349,71 @@ export const getTicketsPaginated = async ({
       constraints.push(where("isUsed", "==", false));
     }
 
+    const q = searchTerm.trim().toLowerCase();
+    // Search/match filters depend on joined data, so they can't be queried in Firestore:
+    // load everything matching the query, filter, then paginate locally
+    const clientSide = !!q || !!selectedMatch;
+
+    const enrich = async (tickets) => {
+      const userIds = new Set();
+      const matchIds = new Set();
+      const orderIds = new Set();
+
+      for (const t of tickets) {
+        if (t.userId) userIds.add(String(t.userId));
+        if (t.matchId) matchIds.add(String(t.matchId));
+        if (t.orderId) orderIds.add(String(t.orderId));
+      }
+
+      const [usersById, matchsById, ordersById] = await Promise.all([
+        fetchByIds("users", Array.from(userIds)),
+        fetchByIds("matchs", Array.from(matchIds)),
+        fetchByIds("orders", Array.from(orderIds)),
+      ]);
+
+      for (const t of tickets) {
+        if (t.userId) t.userDetails = usersById.get(String(t.userId)) || null;
+        if (t.matchId)
+          t.matchDetails = matchsById.get(String(t.matchId)) || null;
+        if (t.orderId)
+          t.orderDetails = ordersById.get(String(t.orderId)) || null;
+      }
+      return tickets;
+    };
+
+    if (clientSide) {
+      const allSnap = await getDocs(
+        query(colRef, ...constraints, orderBy("createdAt", "desc"))
+      );
+      let all = await enrich(
+        allSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }))
+      );
+
+      if (selectedMatch) {
+        all = all.filter(
+          (t) =>
+            t.matchDetails?.date &&
+            `${t.matchDetails.date.seconds}-${t.matchDetails.date.nanoseconds}` ===
+              selectedMatch
+        );
+      }
+
+      if (q) {
+        all = all.filter(
+          (t) =>
+            (t.TicketCode || "").toLowerCase().includes(q) ||
+            (t.userDetails?.userName || "").toLowerCase().includes(q)
+        );
+      }
+
+      return {
+        success: true,
+        tickets: all.slice((page - 1) * pageSize, page * pageSize),
+        totalCount: all.length,
+        lastDoc: null,
+      };
+    }
+
     const countQuery = query(colRef, ...constraints);
     const countSnap = await getCountFromServer(countQuery);
     const totalCount = countSnap.data().count;
@@ -364,49 +430,10 @@ export const getTicketsPaginated = async ({
     dataQueryConstraints.push(limit(pageSize));
 
     const ticketsSnap = await getDocs(query(colRef, ...dataQueryConstraints));
-    let tickets = ticketsSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }));
+    const tickets = await enrich(
+      ticketsSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }))
+    );
     const lastDoc = ticketsSnap.docs[ticketsSnap.docs.length - 1] || null;
-
-    const userIds = new Set();
-    const matchIds = new Set();
-    const orderIds = new Set();
-
-    for (const t of tickets) {
-      if (t.userId) userIds.add(String(t.userId));
-      if (t.matchId) matchIds.add(String(t.matchId));
-      if (t.orderId) orderIds.add(String(t.orderId));
-    }
-
-    const [usersById, matchsById, ordersById] = await Promise.all([
-      fetchByIds("users", Array.from(userIds)),
-      fetchByIds("matchs", Array.from(matchIds)),
-      fetchByIds("orders", Array.from(orderIds)),
-    ]);
-
-    for (const t of tickets) {
-      if (t.userId) t.userDetails = usersById.get(String(t.userId)) || null;
-      if (t.matchId) t.matchDetails = matchsById.get(String(t.matchId)) || null;
-      if (t.orderId) t.orderDetails = ordersById.get(String(t.orderId)) || null;
-    }
-
-    if (selectedMatch) {
-      tickets = tickets.filter((t) => {
-        return (
-          t.matchDetails?.date &&
-          `${t.matchDetails.date.seconds}-${t.matchDetails.date.nanoseconds}` ===
-            selectedMatch
-        );
-      });
-    }
-
-    if (searchTerm.trim()) {
-      const q = searchTerm.trim().toLowerCase();
-      tickets = tickets.filter((t) => {
-        const code = (t.TicketCode || "").toLowerCase();
-        const userName = (t.userDetails?.userName || "").toLowerCase();
-        return code.includes(q) || userName.includes(q);
-      });
-    }
 
     return {
       success: true,
