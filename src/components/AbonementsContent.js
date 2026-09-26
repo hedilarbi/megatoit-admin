@@ -75,6 +75,7 @@ const AbonementsContent = () => {
         searchTerm,
         fromDate,
         toDate,
+        page,
       });
 
       if (response.success) {

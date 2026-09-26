@@ -42,7 +42,7 @@ const MatchsContent = () => {
   const handleSearch = (event) => {
     const searchTerm = event.target.value.toLowerCase();
     const filteredMatchs = matchsList.filter((match) =>
-      match.opponent.name.toLowerCase().includes(searchTerm)
+      (match.opponent?.name || "").toLowerCase().includes(searchTerm)
     );
     setMatchs(filteredMatchs);
   };

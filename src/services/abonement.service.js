@@ -205,6 +205,7 @@ export const getSubscriptionsPaginated = async ({
   searchTerm = "",
   fromDate = "",
   toDate = "",
+  page = 1,
 }) => {
   try {
     const colRef = collection(db, "subscriptions");
@@ -217,6 +218,59 @@ export const getSubscriptionsPaginated = async ({
       constraints.push(
         where("createdAt", "<=", new Date(`${toDate}T23:59:59.999`))
       );
+    }
+
+    const q = searchTerm.trim().toLowerCase();
+
+    const enrich = async (subscriptions) => {
+      const userIds = new Set();
+      const orderIds = new Set();
+      const abonnementIds = new Set();
+
+      for (const s of subscriptions) {
+        if (s.userId) userIds.add(String(s.userId));
+        if (s.orderId) orderIds.add(String(s.orderId));
+        if (s.abonnementId) abonnementIds.add(String(s.abonnementId));
+      }
+
+      const [usersById, ordersById, abonnementsById] = await Promise.all([
+        fetchByIds("users", Array.from(userIds)),
+        fetchByIds("orders", Array.from(orderIds)),
+        fetchByIds("abonements", Array.from(abonnementIds)),
+      ]);
+
+      for (const s of subscriptions) {
+        if (s.userId) s.user = usersById.get(String(s.userId)) || null;
+        if (s.orderId)
+          s.orderDetails = ordersById.get(String(s.orderId)) || null;
+        if (s.abonnementId)
+          s.abonnement = abonnementsById.get(String(s.abonnementId)) || null;
+      }
+      return subscriptions;
+    };
+
+    if (q) {
+      // Search depends on joined data (user name), so it can't be queried in Firestore:
+      // load everything in the date range, filter, then paginate locally
+      const allSnap = await getDocs(
+        query(colRef, ...constraints, orderBy("createdAt", "desc"))
+      );
+      const all = (
+        await enrich(
+          allSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }))
+        )
+      ).filter(
+        (s) =>
+          (s.code || "").toLowerCase().includes(q) ||
+          (s.user?.userName || "").toLowerCase().includes(q)
+      );
+
+      return {
+        success: true,
+        subscriptions: all.slice((page - 1) * pageSize, page * pageSize),
+        totalCount: all.length,
+        lastDoc: null,
+      };
     }
 
     const countQuery = query(colRef, ...constraints);
@@ -235,40 +289,10 @@ export const getSubscriptionsPaginated = async ({
     dataQueryConstraints.push(limit(pageSize));
 
     const subsSnap = await getDocs(query(colRef, ...dataQueryConstraints));
-    let subscriptions = subsSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }));
+    const subscriptions = await enrich(
+      subsSnap.docs.map((d) => ({ id: d.id, ...d.data(), _doc: d }))
+    );
     const lastDoc = subsSnap.docs[subsSnap.docs.length - 1] || null;
-
-    const userIds = new Set();
-    const orderIds = new Set();
-    const abonnementIds = new Set();
-
-    for (const s of subscriptions) {
-      if (s.userId) userIds.add(String(s.userId));
-      if (s.orderId) orderIds.add(String(s.orderId));
-      if (s.abonnementId) abonnementIds.add(String(s.abonnementId));
-    }
-
-    const [usersById, ordersById, abonnementsById] = await Promise.all([
-      fetchByIds("users", Array.from(userIds)),
-      fetchByIds("orders", Array.from(orderIds)),
-      fetchByIds("abonements", Array.from(abonnementIds)),
-    ]);
-
-    for (const s of subscriptions) {
-      if (s.userId) s.user = usersById.get(String(s.userId)) || null;
-      if (s.orderId) s.orderDetails = ordersById.get(String(s.orderId)) || null;
-      if (s.abonnementId)
-        s.abonnement = abonnementsById.get(String(s.abonnementId)) || null;
-    }
-
-    if (searchTerm.trim()) {
-      const q = searchTerm.trim().toLowerCase();
-      subscriptions = subscriptions.filter((s) => {
-        const code = (s.code || "").toLowerCase();
-        const userName = (s.user?.userName || "").toLowerCase();
-        return code.includes(q) || userName.includes(q);
-      });
-    }
 
     return {
       success: true,

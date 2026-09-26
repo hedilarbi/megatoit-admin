@@ -911,7 +911,7 @@ const MessagerieContent = () => {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="flex h-full min-h-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div className="flex h-full min-h-0 overflow-hidden bg-white">
       {/* Liste des discussions */}
       <section className="flex w-[380px] shrink-0 flex-col border-r border-gray-200">
         <div className="border-b border-gray-200 p-4">
