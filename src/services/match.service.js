@@ -483,6 +483,29 @@ export const createPromoCode = async (codeData) => {
   }
 };
 
+// Matches not played yet, for attaching a "freeTicket" promo code to a match
+export const getUpcomingMatches = async () => {
+  try {
+    const matchsSnapshot = await getDocs(
+      query(
+        collection(db, "matchs"),
+        where("date", ">", new Date()),
+        orderBy("date", "asc")
+      )
+    );
+    return {
+      success: true,
+      data: matchsSnapshot.docs.map((d) => ({ id: d.id, ...d.data() })),
+    };
+  } catch (error) {
+    console.error("Erreur lors de la récupération des matchs à venir :", error);
+    return {
+      success: false,
+      error: "Une erreur s'est produite lors de la récupération des matchs",
+    };
+  }
+};
+
 export const getAllPromoCodes = async () => {
   try {
     const promoCodesCollection = collection(db, "promoCodes");
@@ -491,6 +514,15 @@ export const getAllPromoCodes = async () => {
       id: doc.id,
       ...doc.data(),
     }));
+
+    // "freeTicket" codes are attached to a match
+    const matchIds = [
+      ...new Set(promoCodes.map((p) => p.matchId).filter(Boolean)),
+    ];
+    const matchsById = await fetchByIds("matchs", matchIds);
+    for (const p of promoCodes) {
+      if (p.matchId) p.match = matchsById.get(String(p.matchId)) || null;
+    }
 
     return { success: true, data: promoCodes };
   } catch (error) {

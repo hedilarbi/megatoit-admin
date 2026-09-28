@@ -125,12 +125,18 @@ const OrderComponent = ({ code }) => {
               <p className="text-gray-700 mb-2">
                 <strong>Code promo utilisé:</strong>{" "}
                 {order.promoCodeDetails.code} (
-                {order.promoCodeDetails.type === "percent"
-                  ? `${order.promoCodeDetails.percent}%`
-                  : `$${parseFloat(order.promoCodeDetails.amount).toFixed(
-                      2
-                    )}`}{" "}
-                de réduction)
+                {order.promoCodeDetails.type === "freeTicket"
+                  ? `Billet gratuit : ${
+                      order.freeTicketsDetails?.length || 0
+                    } billet(s) offert(s)`
+                  : `${
+                      order.promoCodeDetails.type === "percent"
+                        ? `${order.promoCodeDetails.percent}%`
+                        : `$${parseFloat(order.promoCodeDetails.amount).toFixed(
+                            2
+                          )}`
+                    } de réduction`}
+                )
               </p>
             )}
           </div>
@@ -175,6 +181,58 @@ const OrderComponent = ({ code }) => {
                   >
                     Voir le billet
                   </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {order.freeTicketsDetails?.length > 0 && (
+        <div className="mt-4">
+          <h2 className="text-2xl font-bold mb-4">
+            {order.freeTicketsDetails.length > 1
+              ? "Billets gratuits"
+              : "Billet gratuit"}{" "}
+            (code promo)
+          </h2>
+          {order.freeTicketsDetails.map((ticket) => (
+            <div
+              className="bg-white shadow-md rounded-lg p-6 mb-1"
+              key={ticket.TicketCode}
+            >
+              <div className="flex ">
+                <div className="flex-1">
+                  <p className="text-gray-700 mb-2">
+                    <strong>Billet N:</strong> {ticket.TicketCode}
+                  </p>
+                  <p className="text-gray-700 mb-2">
+                    <strong>Prix :</strong> Gratuit
+                  </p>
+                  <p className="text-gray-700 mb-2">
+                    <strong>Utilisation:</strong>{" "}
+                    {ticket.isUsed ? "utilisé" : "non utilisé"}
+                  </p>
+                </div>
+                <div className="flex-1">
+                  <p className="text-gray-700 mb-2">
+                    <strong>Match:</strong> BSR DE TROIS-RIVIÈRES vs{" "}
+                    {order.freeMatchDetails?.opponent?.name || "-"}
+                  </p>
+                  <p className="text-gray-700 mb-2">
+                    <strong>Date du match :</strong>{" "}
+                    {order.freeMatchDetails?.date
+                      ? formatDate(order.freeMatchDetails.date)
+                      : "-"}
+                  </p>
+                  {ticket.downloadUrl && (
+                    <Link
+                      href={ticket.downloadUrl}
+                      className="bg-black text-white rounded-md py-2 px-4 hover:bg-gray-800 transition inline-block"
+                      target="_blank"
+                    >
+                      Voir le billet
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

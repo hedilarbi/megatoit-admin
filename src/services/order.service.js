@@ -227,6 +227,20 @@ export const getOrderByCode = async (code) => {
       orderData.ticketsDetails = tickets;
     }
 
+    // Free tickets from a "freeTicket" promo code, for the next home match
+    if (Array.isArray(orderData.freeTickets) && orderData.freeTickets.length) {
+      const freeTicketsById = await fetchByIds("tickets", orderData.freeTickets);
+      orderData.freeTicketsDetails = orderData.freeTickets
+        .map((ticketId) => freeTicketsById.get(String(ticketId)))
+        .filter(Boolean);
+    }
+    if (orderData.freeMatchId) {
+      const freeMatchDoc = await getDoc(doc(db, "matchs", orderData.freeMatchId));
+      if (freeMatchDoc.exists()) {
+        orderData.freeMatchDetails = freeMatchDoc.data();
+      }
+    }
+
     // Populate match details if matchId exists
     if (orderData.matchId) {
       const matchDocRef = doc(db, "matchs", orderData.matchId);

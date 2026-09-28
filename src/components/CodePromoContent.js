@@ -173,7 +173,7 @@ const CodePromoContent = () => {
             {/* Exemple de données statiques */}
             {promoCodes.length === 0 ? (
               <tr className="text-center">
-                <td colSpan={4} className="px-6 py-4 text-gray-500">
+                <td colSpan={8} className="px-6 py-4 text-gray-500">
                   Aucun code promo trouvé
                 </td>
               </tr>
@@ -182,14 +182,26 @@ const CodePromoContent = () => {
                 <tr key={promoCode.id} className="hover:bg-gray-100 transition">
                   <td className="px-6 py-4 text-gray-700">{promoCode.code}</td>
                   <td className="px-6 py-4 text-gray-700">
-                    {promoCode.type === "percent"
-                      ? "Pourcentage"
-                      : "Montant fixe"}
+                    {promoCode.type === "freeTicket"
+                      ? "Billet gratuit"
+                      : promoCode.type === "percent"
+                        ? "Pourcentage"
+                        : "Montant fixe"}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
-                    {promoCode.type === "percent"
-                      ? `${promoCode.percent}%`
-                      : `$${promoCode.amount} `}
+                    {promoCode.type === "freeTicket"
+                      ? `1 billet offert par billet acheté${
+                          promoCode.match
+                            ? ` - match : ${
+                                promoCode.match.type === "Domicile"
+                                  ? `${promoCode.match.opponent?.name || ""} vs ${promoCode.match.homeTeam?.name || "BSR DE TROIS-RIVIÈRES"}`
+                                  : `${promoCode.match.homeTeam?.name || "BSR DE TROIS-RIVIÈRES"} vs ${promoCode.match.opponent?.name || ""}`
+                              }`
+                            : ""
+                        }`
+                      : promoCode.type === "percent"
+                        ? `${promoCode.percent}%`
+                        : `$${promoCode.amount} `}
                   </td>
                   <td className="px-6 py-4 text-gray-700">
                     {promoCode.usagePerUser

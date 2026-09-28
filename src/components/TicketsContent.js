@@ -265,6 +265,11 @@ const TicketsContent = () => {
                   >
                     <td className="px-6 py-4 text-gray-700">
                       {ticket.TicketCode}
+                      {ticket.isFree && (
+                        <span className="ml-2 rounded bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
+                          Gratuit
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-gray-700">
                       {ticket.userDetails?.userName || "N/A"}

@@ -241,9 +241,11 @@ const DashboardContent = () => {
                     </td>
                     <td className="px-6 py-4 text-gray-700">
                       {order.promoCodeId
-                        ? order.promotion?.type === "percent"
-                          ? `${order.promotion?.percent}%`
-                          : `$${order.promotion?.amount}`
+                        ? order.promotion?.type === "freeTicket"
+                          ? `Billet gratuit (${order.freeTickets?.length || 0})`
+                          : order.promotion?.type === "percent"
+                            ? `${order.promotion?.percent}%`
+                            : `$${order.promotion?.amount}`
                         : "-"}
                     </td>
                     <td className="px-6 py-4 text-gray-700">
