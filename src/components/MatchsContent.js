@@ -49,26 +49,23 @@ const MatchsContent = () => {
   useEffect(() => {
     fetchData(); // Fetch data when the component mounts
   }, [refresh]);
+  // Same technique as the match cards on the client site (home + calendrier):
+  // stored wall time via Etc/GMT-1, whatever the admin computer's time zone
   const formatDate = (timestamp) => {
     const milliseconds =
       timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000;
-
     const date = new Date(milliseconds);
-
     const dayName = date.toLocaleDateString("fr-FR", { weekday: "long" });
-    let time = date.toTimeString("fr-FR", {
+    const str = new Intl.DateTimeFormat("fr-FR", {
+      timeZone: "Etc/GMT-1",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    });
-    time = time.substring(0, 5); // Extracting only the time part (HH:MM)
-    const formattedDateShort = date.toLocaleDateString("fr-FR", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-    });
-
-    const formattedDate = `${dayName} ${formattedDateShort} à ${time}`;
-    return formattedDate;
+      hour12: false,
+    }).format(date);
+    return `${dayName}, ${str}`;
   };
   const handleDelete = async () => {
     try {
@@ -180,7 +177,7 @@ const MatchsContent = () => {
                   <td className="px-6 py-4 text-gray-700">
                     {match.opponent.name}
                   </td>
-                  <td className="px-6 py-4 text-gray-700">
+                  <td className="px-6 py-4 text-gray-700 capitalize">
                     {formatDate(match.date)}
                   </td>
 
