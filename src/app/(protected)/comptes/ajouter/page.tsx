@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import Spinner from "@/components/spinner/Spinner";
+import { auth } from "@/lib/firebase";
 const AddAccount = () => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -28,11 +29,12 @@ const AddAccount = () => {
     }
     try {
       setLoading(true);
-      const response = await axios.post("/api/create-user", {
-        email,
-        password,
-        name,
-      });
+      const idToken = await auth.currentUser?.getIdToken();
+      const response = await axios.post(
+        "/api/create-user",
+        { email, password, name },
+        { headers: { Authorization: `Bearer ${idToken}` } }
+      );
       if (!response.data.success) {
         toast.error("Failed to create account.");
         return;

@@ -12,6 +12,7 @@ import DeleteWarningModal from "./DeleteWarningModal";
 import toast from "react-hot-toast";
 import { getAllEmployees, updateAccountStatus } from "@/services/user.service";
 import axios from "axios";
+import { auth } from "@/lib/firebase";
 const ComptesContent = () => {
   const [comptes, setComptes] = useState([]);
 
@@ -45,8 +46,10 @@ const ComptesContent = () => {
   const handleDelete = async () => {
     try {
       setSubmitting(true);
+      const idToken = await auth.currentUser?.getIdToken();
       const response = await axios.delete(`/api/delete-account`, {
         data: { uid: compteToDelete },
+        headers: { Authorization: `Bearer ${idToken}` },
       });
 
       if (response.data.success) {

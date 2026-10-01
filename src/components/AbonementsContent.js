@@ -6,12 +6,11 @@ import { WarningIcon } from "@/assets/svgs";
 import Image from "next/image";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { useAuth } from "@/context/AuthContext";
+import { auth } from "@/lib/firebase";
 import { getSubscriptionsPaginated } from "@/services/abonement.service";
 import Pagination from "./Pagination";
 
 const AbonementsContent = () => {
-  const { user } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createData, setCreateData] = useState({ fullName: "", email: "" });
   const [isCreating, setIsCreating] = useState(false);
@@ -24,13 +23,18 @@ const AbonementsContent = () => {
     }
     try {
       setIsCreating(true);
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) {
+        toast.error("Session expirée, reconnectez-vous.");
+        return;
+      }
       const res = await fetch(`${process.env.NEXT_PUBLIC_CLIENT_URL || "http://localhost:3000"}/api/admin-create-free-abonnement`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-admin-key": process.env.NEXT_PUBLIC_ADMIN_API_KEY || "my-super-secret-admin-key-2026",
+          Authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify({ ...createData, adminId: user?.uid }),
+        body: JSON.stringify(createData),
       });
       const data = await res.json();
       if (res.ok) {

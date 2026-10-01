@@ -4,6 +4,7 @@ import { getApps, initializeApp, cert } from "firebase-admin/app";
 
 import { Timestamp, getFirestore } from "firebase-admin/firestore";
 import nodemailer from "nodemailer";
+import { requireAdmin } from "@/lib/apiAuth";
 
 // --- Next.js route settings ---
 export const runtime = "nodejs";
@@ -58,6 +59,11 @@ function toDate(value) {
 }
 
 export async function POST(request) {
+  const auth = await requireAdmin(request);
+  if (!auth.ok) {
+    return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
+  }
+
   try {
     // --- Parse body for date range (optional override) ---
     const body = (await request.json().catch(() => ({}))) ?? {};

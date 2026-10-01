@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { requireAdmin } from "@/lib/apiAuth";
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS);
 
@@ -12,6 +13,11 @@ if (!getApps().length) {
 }
 
 export async function POST(req) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) {
+    return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
+  }
+
   const { email, password, name } = await req.json();
 
   try {
