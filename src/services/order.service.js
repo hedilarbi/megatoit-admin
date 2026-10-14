@@ -74,6 +74,39 @@ export const getOrdersWithDetails = async () => {
   return orders;
 };
 
+// Orders that used a given promo code, with the buyer's details
+export const getOrdersByPromoCode = async (promoCodeId) => {
+  try {
+    // Sorted locally: where + orderBy on another field needs a composite index
+    const ordersSnap = await getDocs(
+      query(collection(db, "orders"), where("promoCodeId", "==", promoCodeId))
+    );
+    const orders = ordersSnap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .sort(
+        (a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+      );
+
+    const userIds = [
+      ...new Set(orders.map((o) => o.userId).filter(Boolean).map(String)),
+    ];
+    const usersById = await fetchByIds("users", userIds);
+
+    for (const o of orders) {
+      if (o.userId) o.userDetails = usersById.get(String(o.userId)) || null;
+    }
+
+    return { success: true, data: orders };
+  } catch (error) {
+    console.error("Error fetching orders by promo code:", error);
+    return {
+      success: false,
+      error: "Une erreur s'est produite lors de la récupération des commandes.",
+      data: [],
+    };
+  }
+};
+
 export const getOrdersPaginated = async ({
   pageSize = 10,
   cursorDoc = null,

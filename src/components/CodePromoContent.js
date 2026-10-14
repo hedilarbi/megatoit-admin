@@ -4,10 +4,11 @@ import React, { useState, useEffect } from "react";
 import Spinner from "./spinner/Spinner";
 
 import { WarningIcon } from "@/assets/svgs";
-import { IoTrash } from "react-icons/io5";
+import { IoEye, IoTrash } from "react-icons/io5";
 import Image from "next/image";
 
 import DeleteWarningModal from "./DeleteWarningModal";
+import PromoCodeOrdersModal from "./PromoCodeOrdersModal";
 import toast from "react-hot-toast";
 
 const formatPromoDate = (dateLike) => {
@@ -49,6 +50,7 @@ const CodePromoContent = () => {
   const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [codeToDelete, setCodeToDelete] = useState(null);
+  const [codeToView, setCodeToView] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const fetchData = async () => {
@@ -139,6 +141,13 @@ const CodePromoContent = () => {
         />
       )}
 
+      {codeToView && (
+        <PromoCodeOrdersModal
+          promoCode={codeToView}
+          onClose={() => setCodeToView(null)}
+        />
+      )}
+
       {submitting && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/30  z-20">
           <Spinner />
@@ -219,6 +228,13 @@ const CodePromoContent = () => {
                   </td>
 
                   <td className="px-6 py-4 flex space-x-5 items-center ">
+                    <button
+                      className="text-gray-700 hover:text-black cursor-pointer"
+                      title="Voir les commandes"
+                      onClick={() => setCodeToView(promoCode)}
+                    >
+                      <IoEye size={22} />
+                    </button>
                     <button
                       className="text-red-600 hover:text-red-800 cursor-pointer"
                       onClick={() => {
